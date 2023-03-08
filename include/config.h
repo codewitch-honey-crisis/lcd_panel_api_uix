@@ -1,7 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
-
+#define LCD_SWAP_XY true
 #ifdef TTGO_T1
 #define LCD_SPI_HOST    SPI3_HOST
 #define LCD_BK_LIGHT_ON_LEVEL 1
@@ -19,6 +18,13 @@
 #define PIN_BUTTON_B 0
 #define I2C_SDA -1
 #define I2C_SCL -1
+#define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_RGB
+#define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
+#define LCD_GAP_X 40
+#define LCD_GAP_Y 52
+#define LCD_MIRROR_X false
+#define LCD_MIRROR_Y true
+#define LCD_INVERT_COLOR true
 #endif // TTGO_T1
 
 #ifdef WROVER_KIT
@@ -38,6 +44,13 @@
 #define LCD_VRES 320
 #define I2C_SDA -1
 #define I2C_SCL -1
+#define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_BGR
+#define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
+#define LCD_GAP_X 0
+#define LCD_GAP_Y 0
+#define LCD_MIRROR_X false
+#define LCD_MIRROR_Y false
+#define LCD_INVERT_COLOR false
 #endif // WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
@@ -70,7 +83,13 @@
 #define LCD_VRES 480
 #define I2C_SDA 38
 #define I2C_SCL 39
-
+#define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_BGR
+#define LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
+#define LCD_GAP_X 0
+#define LCD_GAP_Y 0
+#define LCD_MIRROR_X false
+#define LCD_MIRROR_Y false
+#define LCD_INVERT_COLOR false
 #endif // ESP_DISPLAY_S3
 
 #endif

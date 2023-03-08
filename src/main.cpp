@@ -69,8 +69,8 @@ class svg_box : public control<PixelType, PaletteType> {
         }
     }
     svg_box(invalidation_tracker& parent, const palette_type* palette = nullptr) : base_type(parent, palette) {
-        using color_t = gfx::color<gfx::rgba_pixel<32>>;
-        m_background_color = color_t::white;
+        using color16_t = gfx::color<gfx::rgba_pixel<32>>;
+        m_background_color = color16_t::white;
     }
     gfx::rgba_pixel<32> background_color() const {
         return m_background_color;
@@ -102,12 +102,15 @@ class svg_box : public control<PixelType, PaletteType> {
 using screen_t = screen<LCD_VRES, LCD_HRES, rgb_pixel<16>>;
 // declare the control types to match the screen
 #ifdef ESP_DISPLAY_S3
+// since this supports touch, we use an interactive button
+// instead of a static label
 using label_t = push_button<typename screen_t::pixel_type>;
 #else
 using label_t = label<typename screen_t::pixel_type>;
 #endif
 using svg_box_t = svg_box<typename screen_t::pixel_type>;
-using color_t = color<typename screen_t::pixel_type>;
+// for access to RGB565 colors which LCDs and the main screen use
+using color16_t = color<rgb_pixel<16>>;
 // for access to RGB8888 colors which controls use
 using color32_t = color<rgba_pixel<32>>;
 #ifdef TTGO_T1
@@ -148,10 +151,10 @@ int cycle_state = 0;
 cycle_timer_t cycle_timer(1000, [](void* state) {
     switch (cycle_state) {
         case 0:
-            main_screen.background_color(color_t::light_green);
+            main_screen.background_color(color16_t::light_green);
             break;
         case 1:
-            main_screen.background_color(color_t::white);
+            main_screen.background_color(color16_t::white);
             break;
         case 2:
             test_label.text_color(color32_t::red);
@@ -201,10 +204,10 @@ static void uix_touch(point16* out_locations, size_t* in_out_locations_size, voi
     }
 }
 void svg_touch() {
-    main_screen.background_color(color_t::light_green);
+    main_screen.background_color(color16_t::light_green);
 }
 void svg_release() {
-    main_screen.background_color(color_t::white);
+    main_screen.background_color(color16_t::white);
 }
 #endif
 // initialize the screen using the esp panel API
@@ -272,7 +275,7 @@ void lcd_panel_init() {
     esp_lcd_panel_io_i80_config_t io_config;
     memset(&io_config,0,sizeof(io_config));
     io_config.cs_gpio_num = PIN_NUM_CS;
-    io_config.pclk_hz = 4 * 1000 * 1000;
+    io_config.pclk_hz = LCD_PIXEL_CLOCK_HZ;
     io_config.trans_queue_depth = 20;
     io_config.dc_levels.dc_idle_level=0;
     io_config.dc_levels.dc_idle_level = 0;
@@ -292,14 +295,8 @@ void lcd_panel_init() {
     esp_lcd_panel_dev_config_t panel_config;
     memset(&panel_config, 0, sizeof(panel_config));
     panel_config.reset_gpio_num = PIN_NUM_RST;
-#ifdef TTGO_T1
-    panel_config.color_space = ESP_LCD_COLOR_SPACE_RGB;
-#endif
-#if defined(WROVER_KIT) || defined(ESP_DISPLAY_S3)
-    panel_config.color_space = ESP_LCD_COLOR_SPACE_BGR;
-#endif
+    panel_config.color_space = LCD_COLOR_SPACE;
     panel_config.bits_per_pixel = 16;
-
     // Initialize the LCD configuration
     LCD_PANEL(io_handle, &panel_config, &lcd_handle);
 
@@ -312,28 +309,13 @@ void lcd_panel_init() {
 
     // Initialize LCD panel
     esp_lcd_panel_init(lcd_handle);
-#ifdef TTGO_T1
-    //  Swap x and y axis (Different LCD screens may need different options)
-    esp_lcd_panel_swap_xy(lcd_handle, true);
-    esp_lcd_panel_set_gap(lcd_handle, 40, 52);
-    esp_lcd_panel_mirror(lcd_handle, false, true);
-    esp_lcd_panel_invert_color(lcd_handle, true);
-#endif
-#if defined(WROVER_KIT) || defined(ESP_DISPLAY_S3)
-    esp_lcd_panel_invert_color(lcd_handle, false);
-    esp_lcd_panel_swap_xy(lcd_handle, true);
-    esp_lcd_panel_mirror(lcd_handle, false, false);
 
-    esp_lcd_panel_set_gap(lcd_handle, 0, 0);
-
-#endif
+    esp_lcd_panel_swap_xy(lcd_handle, LCD_SWAP_XY);
+    esp_lcd_panel_set_gap(lcd_handle, LCD_GAP_X, LCD_GAP_Y);
+    esp_lcd_panel_mirror(lcd_handle, LCD_MIRROR_X, LCD_MIRROR_Y);
+    esp_lcd_panel_invert_color(lcd_handle, LCD_INVERT_COLOR);
     // Turn on the screen
-#ifdef TTGO_T1
     esp_lcd_panel_disp_off(lcd_handle, false);
-#endif
-#if defined(WROVER_KIT) || defined(ESP_DISPLAY_S3)
-    esp_lcd_panel_disp_off(lcd_handle, true);
-#endif
     // Turn on backlight (Different LCD screens may need different levels)
     digitalWrite(PIN_NUM_BCKL, LCD_BK_LIGHT_ON_LEVEL);
 }
@@ -365,7 +347,7 @@ void screen_init() {
         Serial.printf("Error reading SVG: %d", (int)res);
     }
     test_svg.doc(&doc);
-    main_screen.background_color(color_t::white);
+    main_screen.background_color(color16_t::white);
     main_screen.register_control(test_label);
     main_screen.register_control(test_svg);
     main_screen.on_flush_callback(uix_flush);
@@ -395,9 +377,9 @@ void setup() {
     button_b.on_pressed_changed([](bool pressed, void* state) {
         Serial.println("button_b");
         if (pressed) {
-            main_screen.background_color(color_t::light_green);
+            main_screen.background_color(color16_t::light_green);
         } else {
-            main_screen.background_color(color_t::white);
+            main_screen.background_color(color16_t::white);
         }
     });
 #endif

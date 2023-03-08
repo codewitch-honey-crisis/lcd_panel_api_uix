@@ -316,7 +316,7 @@ static esp_err_t panel_ili9488_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
     ili9488_panel_t *ili9488 = __containerof(panel, ili9488_panel_t, base);
     esp_lcd_panel_io_handle_t io = ili9488->io;
     int command = 0;
-    if (on_off)
+    if (!on_off)
     {
         command = LCD_CMD_DISPON;
     }
