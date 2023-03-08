@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+#include <Wire.h>
 #include "config.h"
 #include "driver/spi_master.h"
 #include "esp_lcd_panel_io.h"
