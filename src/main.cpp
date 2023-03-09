@@ -356,7 +356,11 @@ void lcd_panel_init() {
     io_config.lcd_param_bits = 8;
     io_config.on_color_trans_done = lcd_flush_ready;
     io_config.user_ctx = nullptr;
-    io_config.flags.swap_color_bytes = true;
+#ifdef LCD_SWAP_COLOR_BYTES
+    io_config.flags.swap_color_bytes = LCD_SWAP_COLOR_BYTES;
+#else 
+    io_config.flags.swap_color_bytes = false;
+#endif // LCD_SWAP_COLOR_BYTES
     io_config.flags.cs_active_high = false;
     io_config.flags.reverse_color_bits = false;
     esp_lcd_new_panel_io_i80(i80_bus, &io_config, &io_handle);
