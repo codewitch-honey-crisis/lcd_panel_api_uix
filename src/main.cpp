@@ -19,7 +19,9 @@ using namespace arduino;
 #include <ft6336.hpp>
 using namespace arduino;
 #endif // M5STACK_CORE2
-
+#ifdef M5STACK_FIRE
+#include "esp_lcd_panel_ili9342.h"
+#endif // M5STACK_FIRE
 #if defined(PIN_NUM_BUTTON_A) || defined(PIN_NUM_BUTTON_B)
 #include <button.hpp>
 using namespace arduino;

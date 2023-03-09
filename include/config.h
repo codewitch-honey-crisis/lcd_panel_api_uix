@@ -115,4 +115,31 @@
 #define EXTRA_INIT power.initialize();
 #endif
 
+#ifdef M5STACK_FIRE
+#define LCD_SPI_HOST    SPI3_HOST
+#define LCD_BK_LIGHT_ON_LEVEL 1
+#define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
+#define PIN_NUM_MOSI 23
+#define PIN_NUM_CLK 18
+#define PIN_NUM_CS 14
+#define PIN_NUM_DC 27
+#define PIN_NUM_RST 33
+#define PIN_NUM_BCKL 32
+#define PIN_NUM_BUTTON_A 39
+#define PIN_NUM_BUTTON_B 38
+#define PIN_NUM_BUTTON_C 37
+
+#define LCD_PANEL esp_lcd_new_panel_ili9342
+#define LCD_HRES 240
+#define LCD_VRES 320
+#define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_BGR
+#define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
+#define LCD_GAP_X 0
+#define LCD_GAP_Y 0
+#define LCD_MIRROR_X false
+#define LCD_MIRROR_Y false
+#define LCD_INVERT_COLOR true
+#define LCD_ROTATION 1
+#endif
+
 #endif // CONFIG_H
