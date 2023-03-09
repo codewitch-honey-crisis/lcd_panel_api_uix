@@ -35,8 +35,10 @@ using namespace uix;
 #include <bee_icon.hpp>
 // downloaded from fontsquirrel.com and header generated with
 // https://honeythecodewitch.com/gfx/generator
-#include <fonts/Telegrama.hpp>
-static const open_font& text_font = Telegrama;
+//#include <fonts/Rubik_Black.hpp>
+//#include <fonts/Telegrama.hpp>
+#include <fonts/OpenSans_Regular.hpp>
+static const open_font& text_font = OpenSans_Regular;
 #ifdef LCD_TOUCH
 void svg_touch();
 void svg_release();
