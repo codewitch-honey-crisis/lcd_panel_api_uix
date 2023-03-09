@@ -5,18 +5,25 @@
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_vendor.h"
-#ifdef WROVER_KIT
+#ifdef ESP_WROVER_KIT
 #include "esp_lcd_panel_ili9341.h"
-#endif // WROVER_KIT
+#endif // ESP_WROVER_KIT
 #ifdef ESP_DISPLAY_S3
 #include "esp_lcd_panel_ili9488.h"
 #include <ft6236.hpp>
 using namespace arduino;
 #endif // ESP_DISPLAY_S3
-#ifdef TTGO_T1
+#ifdef M5STACK_CORE2
+#include "esp_lcd_panel_ili9342.h"
+#include "m5core2_power.hpp"
+#include <ft6336.hpp>
+using namespace arduino;
+#endif // M5STACK_CORE2
+
+#if defined(PIN_NUM_BUTTON_A) || defined(PIN_NUM_BUTTON_B)
 #include <button.hpp>
 using namespace arduino;
-#endif // TTGO_T1
+#endif // defined(PIN_NUM_BUTTON_A) || defined(PIN_NUM_BUTTON_B)
 #include <gfx.hpp>
 using namespace gfx;
 #include <uix.hpp>
@@ -28,10 +35,10 @@ using namespace uix;
 // https://honeythecodewitch.com/gfx/generator
 #include <fonts/Telegrama.hpp>
 static const open_font& text_font = Telegrama;
-#ifdef ESP_DISPLAY_S3
+#ifdef LCD_TOUCH
 void svg_touch();
 void svg_release();
-#endif // ESP_DISPLAY_S3
+#endif // LCD_TOUCH
 // declare a custom control
 template <typename PixelType, typename PaletteType = gfx::palette<PixelType, PixelType>>
 class svg_box : public control<PixelType, PaletteType> {
@@ -92,7 +99,7 @@ class svg_box : public control<PixelType, PaletteType> {
         // call the base on paint method
         base_type::on_paint(destination, clip);
     }
-#ifdef ESP_DISPLAY_S3
+#ifdef LCD_TOUCH
     virtual bool on_touch(size_t locations_size,const spoint16* locations) {
         svg_touch();     
         return true;
@@ -100,36 +107,38 @@ class svg_box : public control<PixelType, PaletteType> {
     virtual void on_release() {
         svg_release();
     }
-#endif // ESP_DISPLAY_S3
+#endif // LCD_TOUCH
 };
 
 // declare the format of the screen (x,y are swapped compared 
 // to the display settings)
 using screen_t = screen<LCD_VRES, LCD_HRES, rgb_pixel<16>>;
 // declare the control types to match the screen
-#ifdef ESP_DISPLAY_S3
+#ifdef LCD_TOUCH
 // since this supports touch, we use an interactive button
 // instead of a static label
 using label_t = push_button<typename screen_t::pixel_type>;
 #else
 using label_t = label<typename screen_t::pixel_type>;
-#endif
+#endif // LCD_TOUCH
 using svg_box_t = svg_box<typename screen_t::pixel_type>;
 // for access to RGB565 colors which LCDs and the main screen use
 using color16_t = color<rgb_pixel<16>>;
 // for access to RGBA8888 colors which controls use
 using color32_t = color<rgba_pixel<32>>;
-#ifdef TTGO_T1
-// declare the TTGO buttons
-using button_a_t = int_button<PIN_BUTTON_A, 10, true>;
-using button_b_t = int_button<PIN_BUTTON_B, 10, true>;
-#endif // TTGO_T1
-#ifdef WROVER_KIT
+#ifdef PIN_NUM_BUTTON_A
+// declare the buttons if defined
+using button_a_t = int_button<PIN_NUM_BUTTON_A, 10, true>;
+#endif // PIN_NUM_BUTTON_A
+#ifdef PIN_NUM_BUTTON_B
+using button_b_t = int_button<PIN_NUM_BUTTON_B, 10, true>;
+#endif
+#if !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
 using cycle_timer_t = uix::timer;
-#endif // WROVER_KIT
-#ifdef ESP_DISPLAY_S3
-using touch_t = ft6236<LCD_HRES,LCD_VRES>;
-#endif // ESP_DISPLAY_S3
+#endif // !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+#ifdef LCD_TOUCH
+using touch_t = LCD_TOUCH;
+#endif // LCD_TOUCH
 // UIX allows you to use two buffers for maximum DMA efficiency
 // you don't have to, but performance is significantly better
 // declare 64KB across two buffers for transfer
@@ -142,16 +151,19 @@ esp_lcd_panel_handle_t lcd_handle;
 // our svg doc for svg_box
 svg_doc doc;
 
+#ifdef EXTRA_DECLS
+EXTRA_DECLS
+#endif // EXTRA_DECLS
+
 // the main screen
 screen_t main_screen(sizeof(lcd_buffer1), lcd_buffer1, lcd_buffer2);
 // the controls
 label_t test_label(main_screen);
 svg_box_t test_svg(main_screen);
 
-#ifdef TTGO_T1
-// the TTGO buttons
+#ifdef PIN_NUM_BUTTON_A
+// the buttons
 button_a_t button_a;
-button_b_t button_b;
 void button_a_on_click(bool pressed, void* state) {
     if (pressed) {
         test_label.text_color(color32_t::red);
@@ -159,6 +171,9 @@ void button_a_on_click(bool pressed, void* state) {
         test_label.text_color(color32_t::blue);
     }
 }
+#endif // PIN_NUM_BUTTON_A
+#ifdef PIN_NUM_BUTTON_B
+button_b_t button_b;
 void button_b_on_click(bool pressed, void* state) {
     if (pressed) {
         main_screen.background_color(color16_t::light_green);
@@ -166,8 +181,8 @@ void button_b_on_click(bool pressed, void* state) {
         main_screen.background_color(color16_t::white);
     }
 }
-#endif // TTGO_T1
-#ifdef WROVER_KIT
+#endif // PIN_NUM_BUTTON_B
+#if !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
 int cycle_state = 0;
 cycle_timer_t cycle_timer(1000, [](void* state) {
     switch (cycle_state) {
@@ -189,9 +204,13 @@ cycle_timer_t cycle_timer(1000, [](void* state) {
         cycle_state = 0;
     }
 });
-#endif // WROVER_KIT
-#ifdef ESP_DISPLAY_S3
+#endif // !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+#ifdef LCD_TOUCH
+#ifdef LCD_TOUCH_WIRE
+touch_t touch(LCD_TOUCH_WIRE);
+#else
 touch_t touch;
+#endif // LCD_TOUCH_WIRE
 static void uix_touch(point16* out_locations, size_t* in_out_locations_size, void* state) {
     if(in_out_locations_size<=0) {
         *in_out_locations_size=0;
@@ -218,7 +237,7 @@ void svg_touch() {
 void svg_release() {
     main_screen.background_color(color16_t::white);
 }
-#endif // ESP_DISPLAY_S3
+#endif // LCD_TOUCH
 // tell UIX the DMA transfer is complete
 static bool lcd_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
                             esp_lcd_panel_io_event_data_t* edata, 
@@ -240,15 +259,29 @@ static void uix_flush(point16 location,
 }
 // initialize the screen using the esp lcd panel API
 void lcd_panel_init() {
+#ifdef PIN_NUM_BCKL
     pinMode(PIN_NUM_BCKL, OUTPUT);
+#endif // PIN_NUM_BCKL
 #ifdef LCD_SPI_HOST // 1-bit SPI
     spi_bus_config_t bus_config;
     memset(&bus_config, 0, sizeof(bus_config));
     bus_config.sclk_io_num = PIN_NUM_CLK;
     bus_config.mosi_io_num = PIN_NUM_MOSI;
+#ifdef PIN_NUM_MISO
+    bus_config.miso_io_num = PIN_NUM_MISO;
+#else
     bus_config.miso_io_num = -1;
+#endif // PIN_NUM_MISO
+#ifdef PIN_NUM_QUADWP
+    bus_config.quadwp_io_num = PIN_NUM_QUADWP;
+#else
     bus_config.quadwp_io_num = -1;
+#endif
+#ifdef PIN_NUM_QUADHD
+    bus_config.quadhd_io_num = PIN_NUM_QUADHD;
+#else
     bus_config.quadhd_io_num = -1;
+#endif
     bus_config.max_transfer_sz = sizeof(lcd_buffer1) + 8;
 
     // Initialize the SPI bus on LCD_SPI_HOST
@@ -269,7 +302,7 @@ void lcd_panel_init() {
     esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_SPI_HOST, 
                             &io_config, &
                             io_handle);
-#elif defined(PIN_NUM_D15) // 16-bit i8080
+#elif defined(PIN_NUM_D07) // 8 or 16-bit i8080
     pinMode(PIN_NUM_RD,OUTPUT);
     digitalWrite(PIN_NUM_RD,HIGH);
     esp_lcd_i80_bus_handle_t i80_bus = NULL;
@@ -286,6 +319,7 @@ void lcd_panel_init() {
     bus_config.data_gpio_nums[5] = PIN_NUM_D05;
     bus_config.data_gpio_nums[6] = PIN_NUM_D06;
     bus_config.data_gpio_nums[7] = PIN_NUM_D07;
+#ifdef PIN_NUM_D15
     bus_config.data_gpio_nums[8] = PIN_NUM_D08;
     bus_config.data_gpio_nums[9] = PIN_NUM_D09;
     bus_config.data_gpio_nums[10] = PIN_NUM_D10;
@@ -295,6 +329,9 @@ void lcd_panel_init() {
     bus_config.data_gpio_nums[14] = PIN_NUM_D14;
     bus_config.data_gpio_nums[15] = PIN_NUM_D15;
     bus_config.bus_width = 16;
+#else
+    bus_config.bus_width = 8;
+#endif // PIN_NUM_D15
     bus_config.max_transfer_bytes = sizeof(lcd_buffer1);
 
     esp_lcd_new_i80_bus(&bus_config, &i80_bus);
@@ -323,18 +360,23 @@ void lcd_panel_init() {
     lcd_handle = NULL;
     esp_lcd_panel_dev_config_t panel_config;
     memset(&panel_config, 0, sizeof(panel_config));
+#ifdef PIN_NUM_RST
     panel_config.reset_gpio_num = PIN_NUM_RST;
+#else
+    panel_config.reset_gpio_num = -1;
+#endif
     panel_config.color_space = LCD_COLOR_SPACE;
     panel_config.bits_per_pixel = 16;
 
     // Initialize the LCD configuration
     LCD_PANEL(io_handle, &panel_config, &lcd_handle);
 
-    // Turn off backlight to avoid unpredictable display on 
+#ifdef PIN_NUM_BCKL
+        // Turn off backlight to avoid unpredictable display on 
     // the LCD screen while initializing
     // the LCD panel driver. (Different LCD screens may need different levels)
     digitalWrite(PIN_NUM_BCKL, LCD_BK_LIGHT_OFF_LEVEL);
-
+#endif // PIN_NUM_BCKL
     // Reset the display
     esp_lcd_panel_reset(lcd_handle);
 
@@ -347,8 +389,10 @@ void lcd_panel_init() {
     esp_lcd_panel_invert_color(lcd_handle, LCD_INVERT_COLOR);
     // Turn on the screen
     esp_lcd_panel_disp_off(lcd_handle, false);
+#ifdef PIN_NUM_BCKL
     // Turn on backlight (Different LCD screens may need different levels)
     digitalWrite(PIN_NUM_BCKL, LCD_BK_LIGHT_ON_LEVEL);
+#endif // PIN_NUM_BCKL
 }
 // initialize the screen and controls
 void screen_init() {
@@ -367,11 +411,11 @@ void screen_init() {
     test_label.background_color(bg);
     // and the border
     test_label.border_color(bg);
-#ifdef ESP_DISPLAY_S3
+#ifdef LCD_TOUCH
     test_label.pressed_text_color(color32_t::red);
     test_label.pressed_background_color(bg);
     test_label.pressed_border_color(bg);
-#endif // ESP_DISPLAY_S3
+#endif // LCD_TOUCH
     
     test_svg.bounds(srect16(spoint16(0, 70), ssize16(60, 60))
                 .center_horizontal(main_screen.bounds()));
@@ -384,37 +428,46 @@ void screen_init() {
     main_screen.register_control(test_label);
     main_screen.register_control(test_svg);
     main_screen.on_flush_callback(uix_flush);
-#ifdef ESP_DISPLAY_S3
+#ifdef LCD_TOUCH
     main_screen.on_touch_callback(uix_touch);
-#endif // ESP_DISPLAY_S3
+#endif // LCD_TOUCH
 }
 // set up the hardware
 void setup() {
     Serial.begin(115200);
     Serial.write(bee_icon_data, sizeof(bee_icon_data));
     Serial.println();
+#ifdef I2C_SDA
     Wire.begin(I2C_SDA,I2C_SCL);
+#endif
+#ifdef EXTRA_INIT
+EXTRA_INIT
+#endif //EXTRA_INIT
     lcd_panel_init();
     screen_init();
-#ifdef TTGO_T1
+#ifdef PIN_NUM_BUTTON_A
     button_a.initialize();
-    button_b.initialize();
     button_a.on_pressed_changed(button_a_on_click);
+#endif // PIN_NUM_BUTTON_A
+#ifdef PIN_NUM_BUTTON_B
+    button_b.initialize();
     button_b.on_pressed_changed(button_b_on_click);
-#endif // TTGO_T1
-#ifdef ESP_DISPLAY_S3
+#endif // PIN_NUM_BUTTON_B
+#ifdef LCD_TOUCH
     touch.initialize();
-    touch.rotation(1);
-#endif // ESP_DISPLAY_S3
+    touch.rotation(LCD_ROTATION);
+#endif // LCD_TOUCH
 }
 // keep our stuff up to date and responsive
 void loop() {
-#ifdef TTGO_T1
+#ifdef PIN_NUM_BUTTON_A
     button_a.update();
+#endif // PIN_NUM_BUTTON_A
+#ifdef PIN_NUM_BUTTON_B
     button_b.update();
-#endif // TTGO_T1
-#ifdef WROVER_KIT
+#endif // PIN_NUM_BUTTON_B
+#if !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
     cycle_timer.update();
-#endif // WROVER_KIT
+#endif // !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
     main_screen.update();
 }

@@ -14,10 +14,8 @@
 #define LCD_PANEL esp_lcd_new_panel_st7789
 #define LCD_HRES 135
 #define LCD_VRES 240
-#define PIN_BUTTON_A 35
-#define PIN_BUTTON_B 0
-#define I2C_SDA -1
-#define I2C_SCL -1
+#define PIN_NUM_BUTTON_A 35
+#define PIN_NUM_BUTTON_B 0
 #define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_RGB
 #define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
 #define LCD_GAP_X 40
@@ -25,9 +23,10 @@
 #define LCD_MIRROR_X false
 #define LCD_MIRROR_Y true
 #define LCD_INVERT_COLOR true
+#define LCD_ROTATION 1
 #endif // TTGO_T1
 
-#ifdef WROVER_KIT
+#ifdef ESP_WROVER_KIT
 #define LCD_BK_LIGHT_ON_LEVEL 0
 #define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
 #define LCD_SPI_HOST    HSPI_HOST
@@ -35,15 +34,12 @@
 #define PIN_NUM_MOSI 23
 #define PIN_NUM_CLK  19
 #define PIN_NUM_CS   22
-
 #define PIN_NUM_DC   21
 #define PIN_NUM_RST  18
 #define PIN_NUM_BCKL 5
 #define LCD_PANEL esp_lcd_new_panel_ili9341
 #define LCD_HRES 240
 #define LCD_VRES 320
-#define I2C_SDA -1
-#define I2C_SCL -1
 #define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_BGR
 #define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
 #define LCD_GAP_X 0
@@ -51,7 +47,8 @@
 #define LCD_MIRROR_X false
 #define LCD_MIRROR_Y false
 #define LCD_INVERT_COLOR false
-#endif // WROVER_KIT
+#define LCD_ROTATION 1
+#endif // ESP_WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
 #define LCD_BK_LIGHT_ON_LEVEL 1
@@ -76,7 +73,6 @@
 #define PIN_NUM_D13 6
 #define PIN_NUM_D14 5
 #define PIN_NUM_D15 4
-#define PIN_NUM_RST -1
 #define PIN_NUM_BCKL 45
 #define LCD_PANEL esp_lcd_new_panel_ili9488
 #define LCD_HRES 320
@@ -90,6 +86,33 @@
 #define LCD_MIRROR_X false
 #define LCD_MIRROR_Y false
 #define LCD_INVERT_COLOR false
+#define LCD_TOUCH ft6236<LCD_HRES,LCD_VRES>
+#define LCD_ROTATION 1
 #endif // ESP_DISPLAY_S3
 
+#ifdef M5STACK_CORE2
+#define LCD_SPI_HOST    SPI3_HOST
+#define LCD_BK_LIGHT_ON_LEVEL 1
+#define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
+#define PIN_NUM_MOSI 23
+#define PIN_NUM_CLK 18
+#define PIN_NUM_CS 5
+#define PIN_NUM_DC 15
+#define LCD_PANEL esp_lcd_new_panel_ili9342
+#define LCD_HRES 240
+#define LCD_VRES 320
+#define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_BGR
+#define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
+#define LCD_GAP_X 0
+#define LCD_GAP_Y 0
+#define LCD_MIRROR_X false
+#define LCD_MIRROR_Y false
+#define LCD_INVERT_COLOR true
+#define LCD_ROTATION 1
+#define LCD_TOUCH ft6336<LCD_HRES,LCD_VRES,-1>
+#define LCD_TOUCH_WIRE Wire1
+#define EXTRA_DECLS m5core2_power power;
+#define EXTRA_INIT power.initialize();
 #endif
+
+#endif // CONFIG_H

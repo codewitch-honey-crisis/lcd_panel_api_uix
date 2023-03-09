@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Create LCD panel for model ILI9341
+ * @brief Create LCD panel for model ILI9342
  *
  * @param[in] io LCD panel IO handle
  * @param[in] panel_dev_config general panel device configuration
@@ -19,7 +19,7 @@ extern "C" {
  *          - ESP_ERR_NO_MEM        if out of memory
  *          - ESP_OK                on success
  */
-esp_err_t esp_lcd_new_panel_ili9341(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+esp_err_t esp_lcd_new_panel_ili9342(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
 
 #ifdef __cplusplus
 }
