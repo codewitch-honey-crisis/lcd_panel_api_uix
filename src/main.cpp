@@ -7,16 +7,16 @@
 #include "esp_lcd_panel_vendor.h"
 #ifdef WROVER_KIT
 #include "esp_lcd_panel_ili9341.h"
-#endif
+#endif // WROVER_KIT
 #ifdef ESP_DISPLAY_S3
 #include "esp_lcd_panel_ili9488.h"
 #include <ft6236.hpp>
 using namespace arduino;
-#endif
+#endif // ESP_DISPLAY_S3
 #ifdef TTGO_T1
 #include <button.hpp>
 using namespace arduino;
-#endif
+#endif // TTGO_T1
 #include <gfx.hpp>
 using namespace gfx;
 #include <uix.hpp>
@@ -28,26 +28,31 @@ using namespace uix;
 // https://honeythecodewitch.com/gfx/generator
 #include <fonts/Telegrama.hpp>
 static const open_font& text_font = Telegrama;
+#ifdef ESP_DISPLAY_S3
 void svg_touch();
 void svg_release();
+#endif // ESP_DISPLAY_S3
+// declare a custom control
 template <typename PixelType, typename PaletteType = gfx::palette<PixelType, PixelType>>
 class svg_box : public control<PixelType, PaletteType> {
+   // public and private type aliases
+   // pixel_type and palette_type are 
+   // required on any control
    public:
     using type = svg_box;
     using pixel_type = PixelType;
     using palette_type = PaletteType;
-
    private:
     using base_type = control<PixelType, PaletteType>;
     using control_surface_type = typename base_type::control_surface_type;
-
-    gfx::rgba_pixel<32> m_background_color;
+    // member data
     gfx::svg_doc* m_svg;
+    // no reason for copy semantics
     svg_box(const svg_box& rhs) = delete;
     svg_box& operator=(const svg_box& rhs) = delete;
+    // implements move semantics
     void do_move(svg_box& rhs) {
         do_move_control(rhs);
-        m_background_color = rhs.m_background_color;
         m_svg = rhs.m_svg;
     }
 
@@ -68,23 +73,23 @@ class svg_box : public control<PixelType, PaletteType> {
             this->invalidate();
         }
     }
-    svg_box(invalidation_tracker& parent, const palette_type* palette = nullptr) : base_type(parent, palette) {
-        using color16_t = gfx::color<gfx::rgba_pixel<32>>;
-        m_background_color = color16_t::white;
-    }
-    gfx::rgba_pixel<32> background_color() const {
-        return m_background_color;
-    }
-    void background_color(gfx::rgba_pixel<32> value) {
-        m_background_color = value;
-        this->invalidate();
-    }
+    svg_box(invalidation_tracker& parent, const palette_type* palette = nullptr) 
+            : base_type(parent, palette), m_svg(nullptr) {
 
+    }
+    
     virtual void on_paint(control_surface_type& destination, const srect16& clip) override {
+        // get the rect for the drawing area
         srect16 b = (srect16)this->dimensions().bounds();
+        // if there's an SVG set, render it
+        // scaled to the control
         if (m_svg != nullptr) {
-            gfx::draw::svg(destination, this->bounds().dimensions().bounds(), *m_svg, m_svg->scale(b.dimensions()));
+            draw::svg(destination, 
+                        this->bounds().dimensions().bounds(), 
+                        *m_svg, 
+                        m_svg->scale(b.dimensions()));
         }
+        // call the base on paint method
         base_type::on_paint(destination, clip);
     }
 #ifdef ESP_DISPLAY_S3
@@ -95,10 +100,11 @@ class svg_box : public control<PixelType, PaletteType> {
     virtual void on_release() {
         svg_release();
     }
-#endif
+#endif // ESP_DISPLAY_S3
 };
 
-// declare the format of the screen
+// declare the format of the screen (x,y are swapped compared 
+// to the display settings)
 using screen_t = screen<LCD_VRES, LCD_HRES, rgb_pixel<16>>;
 // declare the control types to match the screen
 #ifdef ESP_DISPLAY_S3
@@ -111,27 +117,28 @@ using label_t = label<typename screen_t::pixel_type>;
 using svg_box_t = svg_box<typename screen_t::pixel_type>;
 // for access to RGB565 colors which LCDs and the main screen use
 using color16_t = color<rgb_pixel<16>>;
-// for access to RGB8888 colors which controls use
+// for access to RGBA8888 colors which controls use
 using color32_t = color<rgba_pixel<32>>;
 #ifdef TTGO_T1
 // declare the TTGO buttons
 using button_a_t = int_button<PIN_BUTTON_A, 10, true>;
 using button_b_t = int_button<PIN_BUTTON_B, 10, true>;
-#endif
+#endif // TTGO_T1
 #ifdef WROVER_KIT
 using cycle_timer_t = uix::timer;
-#endif
+#endif // WROVER_KIT
 #ifdef ESP_DISPLAY_S3
 using touch_t = ft6236<LCD_HRES,LCD_VRES>;
-#endif
+#endif // ESP_DISPLAY_S3
 // UIX allows you to use two buffers for maximum DMA efficiency
 // you don't have to, but performance is significantly better
 // declare 64KB across two buffers for transfer
 constexpr static const int lcd_buffer_size = 32 * 1024;
 uint8_t lcd_buffer1[lcd_buffer_size];
 uint8_t lcd_buffer2[lcd_buffer_size];
-// this is the handle from the esp panel api
+// this is the handle from the esp lcd panel api
 esp_lcd_panel_handle_t lcd_handle;
+
 // our svg doc for svg_box
 svg_doc doc;
 
@@ -145,7 +152,21 @@ svg_box_t test_svg(main_screen);
 // the TTGO buttons
 button_a_t button_a;
 button_b_t button_b;
-#endif
+void button_a_on_click(bool pressed, void* state) {
+    if (pressed) {
+        test_label.text_color(color32_t::red);
+    } else {
+        test_label.text_color(color32_t::blue);
+    }
+}
+void button_b_on_click(bool pressed, void* state) {
+    if (pressed) {
+        main_screen.background_color(color16_t::light_green);
+    } else {
+        main_screen.background_color(color16_t::white);
+    }
+}
+#endif // TTGO_T1
 #ifdef WROVER_KIT
 int cycle_state = 0;
 cycle_timer_t cycle_timer(1000, [](void* state) {
@@ -168,21 +189,9 @@ cycle_timer_t cycle_timer(1000, [](void* state) {
         cycle_state = 0;
     }
 });
-#endif
+#endif // WROVER_KIT
 #ifdef ESP_DISPLAY_S3
 touch_t touch;
-#endif
-// tell UIX the DMA transfer is complete
-static bool lcd_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t* edata, void* user_ctx) {
-    main_screen.set_flush_complete();
-    return true;
-}
-// tell the lcd panel api to transfer data via DMA
-static void uix_flush(point16 location, typename screen_t::bitmap_type& bmp, void* state) {
-    int x1 = location.x, y1 = location.y, x2 = location.x + bmp.dimensions().width, y2 = location.y + bmp.dimensions().height;
-    esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2, y2, bmp.begin());
-}
-#ifdef ESP_DISPLAY_S3
 static void uix_touch(point16* out_locations, size_t* in_out_locations_size, void* state) {
     if(in_out_locations_size<=0) {
         *in_out_locations_size=0;
@@ -209,11 +218,30 @@ void svg_touch() {
 void svg_release() {
     main_screen.background_color(color16_t::white);
 }
-#endif
-// initialize the screen using the esp panel API
+#endif // ESP_DISPLAY_S3
+// tell UIX the DMA transfer is complete
+static bool lcd_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
+                            esp_lcd_panel_io_event_data_t* edata, 
+                            void* user_ctx) {
+    main_screen.set_flush_complete();
+    return true;
+}
+// tell the lcd panel api to transfer data via DMA
+static void uix_flush(point16 location, 
+                    typename screen_t::bitmap_type& bmp, 
+                    void* state) {
+    // note that x2, and y2 extend past their destination by 1 pixel each.
+    // this is a quirk of the ESP LCD Panel API, and must be done.
+    int x1 = location.x, 
+        y1 = location.y, 
+        x2 = location.x + bmp.dimensions().width, 
+        y2 = location.y + bmp.dimensions().height;
+    esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2, y2, bmp.begin());
+}
+// initialize the screen using the esp lcd panel API
 void lcd_panel_init() {
     pinMode(PIN_NUM_BCKL, OUTPUT);
-#ifdef LCD_SPI_HOST
+#ifdef LCD_SPI_HOST // 1-bit SPI
     spi_bus_config_t bus_config;
     memset(&bus_config, 0, sizeof(bus_config));
     bus_config.sclk_io_num = PIN_NUM_CLK;
@@ -223,7 +251,7 @@ void lcd_panel_init() {
     bus_config.quadhd_io_num = -1;
     bus_config.max_transfer_sz = sizeof(lcd_buffer1) + 8;
 
-    // Initialize the SPI bus on LCD_HOST
+    // Initialize the SPI bus on LCD_SPI_HOST
     spi_bus_initialize(LCD_SPI_HOST, &bus_config, SPI_DMA_CH_AUTO);
 
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -238,9 +266,10 @@ void lcd_panel_init() {
     io_config.trans_queue_depth = 10,
     io_config.on_color_trans_done = lcd_flush_ready;
     // Attach the LCD to the SPI bus
-    esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_SPI_HOST, &io_config, &io_handle);
-#endif  // LCD_SPI_HOST
-#ifdef PIN_NUM_D15
+    esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_SPI_HOST, 
+                            &io_config, &
+                            io_handle);
+#elif defined(PIN_NUM_D15) // 16-bit i8080
     pinMode(PIN_NUM_RD,OUTPUT);
     digitalWrite(PIN_NUM_RD,HIGH);
     esp_lcd_i80_bus_handle_t i80_bus = NULL;
@@ -290,17 +319,19 @@ void lcd_panel_init() {
     io_config.flags.cs_active_high = false;
     io_config.flags.reverse_color_bits = false;
     esp_lcd_new_panel_io_i80(i80_bus, &io_config, &io_handle);
-#endif
+#endif // PIN_NUM_D15
     lcd_handle = NULL;
     esp_lcd_panel_dev_config_t panel_config;
     memset(&panel_config, 0, sizeof(panel_config));
     panel_config.reset_gpio_num = PIN_NUM_RST;
     panel_config.color_space = LCD_COLOR_SPACE;
     panel_config.bits_per_pixel = 16;
+
     // Initialize the LCD configuration
     LCD_PANEL(io_handle, &panel_config, &lcd_handle);
 
-    // Turn off backlight to avoid unpredictable display on the LCD screen while initializing
+    // Turn off backlight to avoid unpredictable display on 
+    // the LCD screen while initializing
     // the LCD panel driver. (Different LCD screens may need different levels)
     digitalWrite(PIN_NUM_BCKL, LCD_BK_LIGHT_OFF_LEVEL);
 
@@ -321,7 +352,8 @@ void lcd_panel_init() {
 }
 // initialize the screen and controls
 void screen_init() {
-    test_label.bounds(srect16(spoint16(0, 10), ssize16(200, 60)).center_horizontal(main_screen.bounds()));
+    test_label.bounds(srect16(spoint16(0, 10), ssize16(200, 60))
+                .center_horizontal(main_screen.bounds()));
     test_label.text_color(color32_t::blue);
     test_label.text_open_font(&text_font);
     test_label.text_line_height(45);
@@ -335,13 +367,14 @@ void screen_init() {
     test_label.background_color(bg);
     // and the border
     test_label.border_color(bg);
-    #ifdef ESP_DISPLAY_S3
+#ifdef ESP_DISPLAY_S3
     test_label.pressed_text_color(color32_t::red);
     test_label.pressed_background_color(bg);
     test_label.pressed_border_color(bg);
-    #endif
+#endif // ESP_DISPLAY_S3
     
-    test_svg.bounds(srect16(spoint16(0, 70), ssize16(60, 60)).center_horizontal(main_screen.bounds()));
+    test_svg.bounds(srect16(spoint16(0, 70), ssize16(60, 60))
+                .center_horizontal(main_screen.bounds()));
     gfx_result res = svg_doc::read(&bee_icon, &doc);
     if (gfx_result::success != res) {
         Serial.printf("Error reading SVG: %d", (int)res);
@@ -353,7 +386,7 @@ void screen_init() {
     main_screen.on_flush_callback(uix_flush);
 #ifdef ESP_DISPLAY_S3
     main_screen.on_touch_callback(uix_touch);
-#endif
+#endif // ESP_DISPLAY_S3
 }
 // set up the hardware
 void setup() {
@@ -366,37 +399,22 @@ void setup() {
 #ifdef TTGO_T1
     button_a.initialize();
     button_b.initialize();
-    button_a.on_pressed_changed([](bool pressed, void* state) {
-        Serial.println("button_a");
-        if (pressed) {
-            test_label.text_color(color32_t::red);
-        } else {
-            test_label.text_color(color32_t::blue);
-        }
-    });
-    button_b.on_pressed_changed([](bool pressed, void* state) {
-        Serial.println("button_b");
-        if (pressed) {
-            main_screen.background_color(color16_t::light_green);
-        } else {
-            main_screen.background_color(color16_t::white);
-        }
-    });
-#endif
+    button_a.on_pressed_changed(button_a_on_click);
+    button_b.on_pressed_changed(button_b_on_click);
+#endif // TTGO_T1
 #ifdef ESP_DISPLAY_S3
     touch.initialize();
     touch.rotation(1);
-#endif
+#endif // ESP_DISPLAY_S3
 }
 // keep our stuff up to date and responsive
 void loop() {
 #ifdef TTGO_T1
     button_a.update();
     button_b.update();
-#endif
+#endif // TTGO_T1
 #ifdef WROVER_KIT
     cycle_timer.update();
-#endif
-
+#endif // WROVER_KIT
     main_screen.update();
 }
