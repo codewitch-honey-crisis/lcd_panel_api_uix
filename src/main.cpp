@@ -1,3 +1,4 @@
+// LCD_PIN_NUM_HSYNC can be checked to determine if in RGB mode (function protos are slightly different as is behavior)
 #include <Arduino.h>
 #include <Wire.h>
 #include "config.h"
@@ -204,6 +205,7 @@ void svg_release() {
 }
 #endif // LCD_TOUCH
 #ifndef LCD_PIN_NUM_HSYNC
+// not used in RGB mode
 // tell UIX the DMA transfer is complete
 static bool lcd_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
                             esp_lcd_panel_io_event_data_t* edata, 
@@ -220,8 +222,9 @@ static void uix_flush(point16 location,
         y1 = location.y, 
         x2 = location.x + bmp.dimensions().width-1, 
         y2 = location.y + bmp.dimensions().height-1;
-    lcd_panel_draw_bitmap( x1, y1, x2, y2, bmp.begin());
+    lcd_panel_draw_bitmap( x1, y1, x2, y2, bmp.begin());    
 #ifdef LCD_PIN_NUM_HSYNC
+    // flushes are immediate in rgb mode
     main_screen.set_flush_complete();
 #endif
 }
