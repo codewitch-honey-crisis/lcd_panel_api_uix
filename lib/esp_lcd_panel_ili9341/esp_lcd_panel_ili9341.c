@@ -1,3 +1,4 @@
+#if __has_include(<sdkconfig.h>)
 /*
  * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
  *
@@ -398,3 +399,4 @@ static esp_err_t panel_ili9341_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
     vTaskDelay(pdMS_TO_TICKS(100));
     return ESP_OK;
 }
+#endif // __has_include(<sdkconfig.h>)
