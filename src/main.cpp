@@ -1,4 +1,3 @@
-// LCD_PIN_NUM_HSYNC can be checked to determine if in RGB mode (function protos are slightly different as is behavior)
 #include <Arduino.h>
 #include <Wire.h>
 #include "config.h"
@@ -12,6 +11,7 @@ using namespace uix;
 // SVG converted to header using
 // https://honeythecodewitch.com/gfx/converter
 #include "bee_icon.hpp"
+static const const_buffer_stream& svg_stream = bee_icon;
 // downloaded from fontsquirrel.com and header generated with
 // https://honeythecodewitch.com/gfx/generator
 //#include "fonts/Rubik_Black.hpp"
@@ -239,7 +239,7 @@ void screen_init() {
     
     test_svg.bounds(srect16(spoint16(0, 70), ssize16(60, 60))
                 .center_horizontal(main_screen.bounds()));
-    gfx_result res = svg_doc::read(&bee_icon, &doc);
+    gfx_result res = svg_doc::read(&svg_stream, &doc);
     if (gfx_result::success != res) {
         Serial.printf("Error reading SVG: %d", (int)res);
     }
