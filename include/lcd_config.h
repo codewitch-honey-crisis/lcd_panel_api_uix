@@ -211,5 +211,16 @@
 #define LCD_INVERT_COLOR true
 #define LCD_SWAP_XY true
 #endif
-
+#ifdef LCD_SWAP_XY
+#if LCD_SWAP_XY
+#define LCD_WIDTH LCD_VRES
+#define LCD_HEIGHT LCD_HRES
+#else
+#define LCD_WIDTH LCD_HRES
+#define LCD_HEIGHT LCD_VRES
+#endif
+#else
+#define LCD_WIDTH LCD_HRES
+#define LCD_HEIGHT LCD_VRES
+#endif
 #endif // LCD_CONFIG_H

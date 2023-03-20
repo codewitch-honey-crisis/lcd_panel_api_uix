@@ -25,7 +25,8 @@ void svg_release();
 #endif // LCD_TOUCH
 
 // declare a custom control
-template <typename PixelType, typename PaletteType = gfx::palette<PixelType, PixelType>>
+template <typename PixelType, 
+        typename PaletteType = gfx::palette<PixelType, PixelType>>
 class svg_box_touch : public svg_box<PixelType, PaletteType> {
    // public and private type aliases
    // pixel_type and palette_type are 
@@ -39,12 +40,14 @@ class svg_box_touch : public svg_box<PixelType, PaletteType> {
     using control_type = control<PixelType, PaletteType>;
     using control_surface_type = typename control_type::control_surface_type;
      public:
-    svg_box_touch(invalidation_tracker& parent, const palette_type* palette = nullptr) 
-            : base_type(parent, palette) {
+    svg_box_touch(invalidation_tracker& parent, 
+                const palette_type* palette = nullptr) 
+                : base_type(parent, palette) {
 
     }
 #ifdef LCD_TOUCH
-    virtual bool on_touch(size_t locations_size,const spoint16* locations) {
+    virtual bool on_touch(size_t locations_size,
+                        const spoint16* locations) {
         svg_touch();     
         return true;
     }
@@ -54,9 +57,8 @@ class svg_box_touch : public svg_box<PixelType, PaletteType> {
 #endif // LCD_TOUCH
 };
 
-// declare the format of the screen (x,y are swapped compared 
-// to the display settings)
-using screen_t = screen<LCD_VRES, LCD_HRES, rgb_pixel<16>>;
+// declare the format of the screen
+using screen_t = screen<LCD_WIDTH, LCD_HEIGHT, rgb_pixel<16>>;
 // declare the control types to match the screen
 #ifdef LCD_TOUCH
 // since this supports touch, we use an interactive button
@@ -77,41 +79,54 @@ using button_a_t = int_button<PIN_NUM_BUTTON_A, 10, true>;
 #ifdef PIN_NUM_BUTTON_B
 using button_b_t = int_button<PIN_NUM_BUTTON_B, 10, true>;
 #endif
-#if !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+// if we have no inputs, declare
+// a timer
+#if !defined(PIN_NUM_BUTTON_A) && \
+    !defined(PIN_NUM_BUTTON_B) && \
+    !defined(LCD_TOUCH)
 using cycle_timer_t = uix::timer;
-#endif // !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+#endif // !defined(PIN_NUM_BUTTON_A) ...
+// declare touch if available
 #ifdef LCD_TOUCH
 using touch_t = LCD_TOUCH;
 #endif // LCD_TOUCH
 // UIX allows you to use two buffers for maximum DMA efficiency
 // you don't have to, but performance is significantly better
 // declare 64KB across two buffers for transfer
+// RGB mode is the exception. We don't need two buffers
+// because the display works differently.
 #ifndef LCD_PIN_NUM_HSYNC
-constexpr static const int lcd_buffer_size = 32 * 1024;
+constexpr static const int lcd_buffer_size 
+                            = 32 * 1024;
 uint8_t lcd_buffer1[lcd_buffer_size];
 uint8_t lcd_buffer2[lcd_buffer_size];
 #else
-constexpr static const int lcd_buffer_size = 64 * 1024;
+constexpr static const int lcd_buffer_size 
+                            = 64 * 1024;
 uint8_t lcd_buffer1[lcd_buffer_size];
 uint8_t* lcd_buffer2=nullptr;
 #endif // !LCD_PIN_VSYNC
 // our svg doc for svg_box
 svg_doc doc;
-
+// the main screen
+screen_t main_screen(sizeof(lcd_buffer1), 
+                    lcd_buffer1, 
+                    lcd_buffer2);
+// the controls
+label_t test_label(main_screen);
+svg_box_t test_svg(main_screen);
+#ifdef PIN_NUM_BUTTON_A
+button_a_t button_a;
+#endif
+#ifdef PIN_NUM_BUTTON_B
+button_b_t button_b;
+#endif
 #ifdef EXTRA_DECLS
 EXTRA_DECLS
 #endif // EXTRA_DECLS
 
-// the main screen
-screen_t main_screen(sizeof(lcd_buffer1), lcd_buffer1, lcd_buffer2);
-// the controls
-label_t test_label(main_screen);
-svg_box_t test_svg(main_screen);
-
-// button inputs
+// button callbacks
 #ifdef PIN_NUM_BUTTON_A
-// the buttons
-button_a_t button_a;
 void button_a_on_click(bool pressed, void* state) {
     if (pressed) {
         test_label.text_color(color32_t::red);
@@ -121,7 +136,6 @@ void button_a_on_click(bool pressed, void* state) {
 }
 #endif // PIN_NUM_BUTTON_A
 #ifdef PIN_NUM_BUTTON_B
-button_b_t button_b;
 void button_b_on_click(bool pressed, void* state) {
     if (pressed) {
         main_screen.background_color(color16_t::light_green);
@@ -132,7 +146,9 @@ void button_b_on_click(bool pressed, void* state) {
 #endif // PIN_NUM_BUTTON_B
 
 // no inputs
-#if !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+#if !defined(PIN_NUM_BUTTON_A) && \
+    !defined(PIN_NUM_BUTTON_B) && \
+    !defined(LCD_TOUCH)
 int cycle_state = 0;
 cycle_timer_t cycle_timer(1000, [](void* state) {
     switch (cycle_state) {
@@ -154,7 +170,7 @@ cycle_timer_t cycle_timer(1000, [](void* state) {
         cycle_state = 0;
     }
 });
-#endif // !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+#endif // !defined(PIN_NUM_BUTTON_A) ...
 
 // touch inputs
 #ifdef LCD_TOUCH
@@ -172,7 +188,9 @@ touch_t touch(LCD_TOUCH_WIRE);
 #else
 touch_t touch;
 #endif // LCD_TOUCH_WIRE
-static void uix_touch(point16* out_locations, size_t* in_out_locations_size, void* state) {
+static void uix_touch(point16* out_locations, 
+                    size_t* in_out_locations_size, 
+                    void* state) {
     if(in_out_locations_size<=0) {
         *in_out_locations_size=0;
         return;
@@ -255,8 +273,6 @@ void screen_init() {
 // set up the hardware
 void setup() {
     Serial.begin(115200);
-    Serial.write(bee_icon_data, sizeof(bee_icon_data));
-    Serial.println();
 #ifdef I2C_PIN_NUM_SDA
     Wire.begin(I2C_PIN_NUM_SDA,I2C_PIN_NUM_SCL);
 #endif // I2C_PIN_NUM_SDA
@@ -270,9 +286,7 @@ EXTRA_INIT
 #else
     lcd_panel_init(sizeof(lcd_buffer1),lcd_flush_ready);
 #endif // LCD_PIN_NUM_HSYNC
-
     screen_init();
-
 #ifdef PIN_NUM_BUTTON_A
     button_a.initialize();
     button_a.on_pressed_changed(button_a_on_click);
@@ -281,8 +295,6 @@ EXTRA_INIT
     button_b.initialize();
     button_b.on_pressed_changed(button_b_on_click);
 #endif // PIN_NUM_BUTTON_B
-
-    
 }
 // keep our stuff up to date and responsive
 void loop() {
@@ -292,8 +304,10 @@ void loop() {
 #ifdef PIN_NUM_BUTTON_B
     button_b.update();
 #endif // PIN_NUM_BUTTON_B
-#if !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+#if !defined(PIN_NUM_BUTTON_A) && \
+    !defined(PIN_NUM_BUTTON_B) && \
+    !defined(LCD_TOUCH)
     cycle_timer.update();
-#endif // !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+#endif // !defined(PIN_NUM_BUTTON_A) ...
     main_screen.update();
 }

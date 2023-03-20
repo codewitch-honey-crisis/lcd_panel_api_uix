@@ -3,7 +3,6 @@
 #ifdef TTGO_T1
 #define PIN_NUM_BUTTON_A 35
 #define PIN_NUM_BUTTON_B 0
-#define LCD_ROTATION 1
 #include <button.hpp> 
 using namespace arduino;
 #endif  // TTGO_T1
@@ -77,7 +76,6 @@ using namespace arduino;
 #endif // M5STACK_CORE2
 
 #ifdef M5STACK_FIRE
-#define LCD_ROTATION 1
 #define PIN_NUM_BUTTON_A 39
 #define PIN_NUM_BUTTON_B 38
 #define PIN_NUM_BUTTON_C 37
@@ -87,7 +85,6 @@ using namespace arduino;
 #endif // M5STACK_FIRE
 
 #ifdef T_DISPLAY_S3
-#define LCD_ROTATION 1
 #define PIN_NUM_BUTTON_A 0
 #define PIN_NUM_BUTTON_B 14
 #define PIN_NUM_POWER 15
