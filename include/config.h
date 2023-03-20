@@ -9,7 +9,7 @@ using namespace arduino;
 #endif  // TTGO_T1
 
 #ifdef ESP_WROVER_KIT
-#include "esp_lcd_panel_ili9341.h"
+#include <esp_lcd_panel_ili9341.h>
 #endif // ESP_WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
@@ -35,7 +35,7 @@ using namespace arduino;
             *in_out_locations_size = 0;                                    \
         }                                                                  \
     }
-#include "esp_lcd_panel_ili9488.h"
+#include <esp_lcd_panel_ili9488.h>
 #include <ft6236.hpp>
 using namespace arduino;
 #endif  // ESP_DISPLAY_S3
@@ -72,8 +72,8 @@ using namespace arduino;
 #define LCD_TOUCH_WIRE Wire1
 #define EXTRA_DECLS m5core2_power power;
 #define EXTRA_INIT power.initialize();
-#include "esp_lcd_panel_ili9342.h" 
-#include "m5core2_power.hpp" 
+#include <esp_lcd_panel_ili9342.h>
+#include <m5core2_power.hpp>
 #include <ft6336.hpp> 
 using namespace arduino;
 #endif
@@ -83,7 +83,7 @@ using namespace arduino;
 #define PIN_NUM_BUTTON_A 39
 #define PIN_NUM_BUTTON_B 38
 #define PIN_NUM_BUTTON_C 37
-#include "esp_lcd_panel_ili9342.h"
+#include <esp_lcd_panel_ili9342.h>
 #include <button.hpp>
 using namespace arduino;
 #endif
