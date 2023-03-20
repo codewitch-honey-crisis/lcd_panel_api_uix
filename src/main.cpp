@@ -11,7 +11,7 @@ using namespace uix;
 // SVG converted to header using
 // https://honeythecodewitch.com/gfx/converter
 #include "bee_icon.hpp"
-static const const_buffer_stream& svg_stream = bee_icon;
+static const_buffer_stream& svg_stream = bee_icon;
 // downloaded from fontsquirrel.com and header generated with
 // https://honeythecodewitch.com/gfx/generator
 //#include "fonts/Rubik_Black.hpp"
