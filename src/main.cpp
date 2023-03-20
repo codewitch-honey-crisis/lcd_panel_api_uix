@@ -254,9 +254,8 @@ void screen_init() {
     test_label.pressed_background_color(bg);
     test_label.pressed_border_color(bg);
 #endif // LCD_TOUCH
-    
-    test_svg.bounds(srect16(spoint16(0, 70), ssize16(60, 60))
-                .center_horizontal(main_screen.bounds()));
+    test_svg.bounds(srect16(spoint16(0, test_label.bounds().y2+1), 
+                    ssize16(60,60)).center_horizontal(main_screen.bounds()));
     gfx_result res = svg_doc::read(&svg_stream, &doc);
     if (gfx_result::success != res) {
         Serial.printf("Error reading SVG: %d", (int)res);
