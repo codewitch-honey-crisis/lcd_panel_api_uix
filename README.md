@@ -6,6 +6,7 @@ Supported devices:
 - Lilygo TTGO T1 Display
 - Lilygo T-Display S3
 - Makerfabs ESP Display S3 Parallel w/ Touch
+- Makerfabs ESP Display S3 Parallel 4 inch
 - Espressif ESP_WROVER_KIT 4.1
 - M5Stack Core2
 - M5Stack Fire
