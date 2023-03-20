@@ -11,6 +11,10 @@
 #include <ft6236.hpp>
 using namespace arduino;
 #endif // ESP_DISPLAY_S3
+#ifdef ESP_DISPLAY_4INCH
+#include <gt911.hpp>
+using namespace arduino;
+#endif // ESP_DISPLAY_4INCH
 #ifdef M5STACK_CORE2
 #include "esp_lcd_panel_ili9342.h"
 #include "m5core2_power.hpp"
@@ -182,20 +186,12 @@ static void uix_touch(point16* out_locations, size_t* in_out_locations_size, voi
         *in_out_locations_size=0;
         return;
     }
-    if(touch.update()) {
-        if(touch.xy(&out_locations[0].x,&out_locations[0].y)) {
-            if(*in_out_locations_size>1) {
-                *in_out_locations_size = 1;
-                if(touch.xy2(&out_locations[1].x,&out_locations[1].y)) {
-                    *in_out_locations_size = 2;
-                }
-            } else {
-                *in_out_locations_size = 1;
-            }
-        } else {
-            *in_out_locations_size = 0;
-        }
-    }
+#ifdef LCD_TOUCH_IMPL
+LCD_TOUCH_IMPL
+#else
+    in_out_locations_size = 0;
+    return;
+#endif
 }
 void svg_touch() {
     main_screen.background_color(color16_t::light_green);
@@ -292,10 +288,8 @@ EXTRA_INIT
     button_b.initialize();
     button_b.on_pressed_changed(button_b_on_click);
 #endif // PIN_NUM_BUTTON_B
-#ifdef LCD_TOUCH
-    touch.initialize();
-    touch.rotation(LCD_ROTATION);
-#endif // LCD_TOUCH
+
+    
 }
 // keep our stuff up to date and responsive
 void loop() {
