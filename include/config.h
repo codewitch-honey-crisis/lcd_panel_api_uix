@@ -43,10 +43,8 @@ using namespace arduino;
 #ifdef ESP_DISPLAY_4INCH
 #define I2C_PIN_NUM_SDA 17
 #define I2C_PIN_NUM_SCL 18
-
-#define PIN_NUM_TOUCH_RST 38
-
-#define LCD_TOUCH gt911<PIN_NUM_TOUCH_RST>
+#define LCD_TOUCH_PIN_NUM_RST 38
+#define LCD_TOUCH gt911<LCD_TOUCH_PIN_NUM_RST>
 #define LCD_TOUCH_IMPL                          \
     touch.update();                             \
     size_t touches = touch.locations_size();    \
@@ -65,7 +63,7 @@ using namespace arduino;
 #define EXTRA_INIT touch.initialize();
 #include <gt911.hpp> 
 using namespace arduino;
-#endif
+#endif // ESP_DISPLAY_4INCH
 
 #ifdef M5STACK_CORE2
 #define LCD_TOUCH ft6336<LCD_HRES, LCD_VRES, -1>
@@ -76,7 +74,7 @@ using namespace arduino;
 #include <m5core2_power.hpp>
 #include <ft6336.hpp> 
 using namespace arduino;
-#endif
+#endif // M5STACK_CORE2
 
 #ifdef M5STACK_FIRE
 #define LCD_ROTATION 1
@@ -86,7 +84,7 @@ using namespace arduino;
 #include <esp_lcd_panel_ili9342.h>
 #include <button.hpp>
 using namespace arduino;
-#endif
+#endif // M5STACK_FIRE
 
 #ifdef T_DISPLAY_S3
 #define LCD_ROTATION 1
@@ -98,6 +96,6 @@ using namespace arduino;
     digitalWrite(PIN_NUM_POWER, HIGH);
 #include <button.hpp> 
 using namespace arduino;
-#endif
+#endif // T_DISPLAY_S3
 
 #endif  // CONFIG_H
