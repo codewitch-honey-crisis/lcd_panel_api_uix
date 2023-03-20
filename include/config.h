@@ -37,21 +37,21 @@
 #define PIN_NUM_TOUCH_RST 38
 
 #define LCD_TOUCH gt911<PIN_NUM_TOUCH_RST>
-#define LCD_TOUCH_IMPL \
-touch.update(); \
-size_t touches = touch.locations_size(); \
-if (touches) { \
-    if(touches>*in_out_locations_size) { \
-        touches = *in_out_locations_size; \
-    } \
-    decltype(touch)::point pt[5]; \
-    touch.locations(pt,&touches); \
-    for (uint8_t  i = 0; i < touches; i++) { \
-        out_locations[i].x = pt[i].x; \
-        out_locations[i].y = pt[i].y; \
-    } \
-} \
-*in_out_locations_size = touches;
+#define LCD_TOUCH_IMPL                          \
+    touch.update();                             \
+    size_t touches = touch.locations_size();    \
+    if (touches) {                              \
+        if (touches > *in_out_locations_size) { \
+            touches = *in_out_locations_size;   \
+        }                                       \
+        decltype(touch)::point pt[5];           \
+        touch.locations(pt, &touches);          \
+        for (uint8_t i = 0; i < touches; i++) { \
+            out_locations[i].x = pt[i].x;       \
+            out_locations[i].y = pt[i].y;       \
+        }                                       \
+    }                                           \
+    *in_out_locations_size = touches;
 #define EXTRA_INIT touch.initialize();
 #endif
 
