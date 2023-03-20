@@ -3,33 +3,8 @@
 #include <Wire.h>
 #include "config.h"
 #include "lcd_config.h"
-#ifdef ESP_WROVER_KIT
-#include "esp_lcd_panel_ili9341.h"
-#endif // ESP_WROVER_KIT
-#ifdef ESP_DISPLAY_S3
-#include "esp_lcd_panel_ili9488.h"
-#include <ft6236.hpp>
-using namespace arduino;
-#endif // ESP_DISPLAY_S3
-#ifdef ESP_DISPLAY_4INCH
-#include <gt911.hpp>
-using namespace arduino;
-#endif // ESP_DISPLAY_4INCH
-#ifdef M5STACK_CORE2
-#include "esp_lcd_panel_ili9342.h"
-#include "m5core2_power.hpp"
-#include <ft6336.hpp>
-using namespace arduino;
-#endif // M5STACK_CORE2
-#ifdef M5STACK_FIRE
-#include "esp_lcd_panel_ili9342.h"
-#endif // M5STACK_FIRE
 #define LCD_IMPLEMENTATION
 #include "lcd_init.h"
-#if defined(PIN_NUM_BUTTON_A) || defined(PIN_NUM_BUTTON_B)
-#include <button.hpp>
-using namespace arduino;
-#endif // defined(PIN_NUM_BUTTON_A) || defined(PIN_NUM_BUTTON_B)
 #include <gfx.hpp>
 using namespace gfx;
 #include <uix.hpp>

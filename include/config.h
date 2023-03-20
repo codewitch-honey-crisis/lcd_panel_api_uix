@@ -4,7 +4,13 @@
 #define PIN_NUM_BUTTON_A 35
 #define PIN_NUM_BUTTON_B 0
 #define LCD_ROTATION 1
+#include <button.hpp> 
+using namespace arduino;
 #endif  // TTGO_T1
+
+#ifdef ESP_WROVER_KIT
+#include "esp_lcd_panel_ili9341.h"
+#endif // ESP_WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
 #define I2C_SDA 38
@@ -29,7 +35,11 @@
             *in_out_locations_size = 0;                                    \
         }                                                                  \
     }
+#include "esp_lcd_panel_ili9488.h"
+#include <ft6236.hpp>
+using namespace arduino;
 #endif  // ESP_DISPLAY_S3
+
 #ifdef ESP_DISPLAY_4INCH
 #define I2C_SDA 17
 #define I2C_SCL 18
@@ -53,6 +63,8 @@
     }                                           \
     *in_out_locations_size = touches;
 #define EXTRA_INIT touch.initialize();
+#include <gt911.hpp> 
+using namespace arduino;
 #endif
 
 #ifdef M5STACK_CORE2
@@ -60,6 +72,10 @@
 #define LCD_TOUCH_WIRE Wire1
 #define EXTRA_DECLS m5core2_power power;
 #define EXTRA_INIT power.initialize();
+#include "esp_lcd_panel_ili9342.h" 
+#include "m5core2_power.hpp" 
+#include <ft6336.hpp> 
+using namespace arduino;
 #endif
 
 #ifdef M5STACK_FIRE
@@ -67,6 +83,9 @@
 #define PIN_NUM_BUTTON_A 39
 #define PIN_NUM_BUTTON_B 38
 #define PIN_NUM_BUTTON_C 37
+#include "esp_lcd_panel_ili9342.h"
+#include <button.hpp>
+using namespace arduino;
 #endif
 
 #ifdef T_DISPLAY_S3
@@ -77,6 +96,8 @@
 #define EXTRA_INIT                  \
     pinMode(PIN_NUM_POWER, OUTPUT); \
     digitalWrite(PIN_NUM_POWER, HIGH);
+#include <button.hpp> 
+using namespace arduino;
 #endif
 
 #endif  // CONFIG_H
