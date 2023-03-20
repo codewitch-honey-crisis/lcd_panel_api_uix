@@ -13,8 +13,8 @@ using namespace arduino;
 #endif // ESP_WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
-#define I2C_SDA 38
-#define I2C_SCL 39
+#define I2C_PIN_NUM_SDA 38
+#define I2C_PIN_NUM_SCL 39
 #define LCD_TOUCH ft6236<LCD_HRES, LCD_VRES>
 #define LCD_ROTATION 1
 #define EXTRA_INIT      \
@@ -41,8 +41,8 @@ using namespace arduino;
 #endif  // ESP_DISPLAY_S3
 
 #ifdef ESP_DISPLAY_4INCH
-#define I2C_SDA 17
-#define I2C_SCL 18
+#define I2C_PIN_NUM_SDA 17
+#define I2C_PIN_NUM_SCL 18
 
 #define PIN_NUM_TOUCH_RST 38
 

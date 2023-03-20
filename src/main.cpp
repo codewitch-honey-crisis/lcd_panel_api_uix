@@ -185,7 +185,7 @@ static bool lcd_flush_ready(esp_lcd_panel_io_handle_t panel_io,
     return true;
 }
 #endif // LCD_PIN_NUM_HSYNC
-// tell the lcd panel api to transfer data via DMA
+// tell the lcd panel api to transfer the display data
 static void uix_flush(point16 location, 
                     typename screen_t::bitmap_type& bmp, 
                     void* state) {
@@ -243,9 +243,9 @@ void setup() {
     Serial.begin(115200);
     Serial.write(bee_icon_data, sizeof(bee_icon_data));
     Serial.println();
-#ifdef I2C_SDA
-    Wire.begin(I2C_SDA,I2C_SCL);
-#endif
+#ifdef I2C_PIN_NUM_SDA
+    Wire.begin(I2C_PIN_NUM_SDA,I2C_PIN_NUM_SCL);
+#endif // I2C_PIN_NUM_SDA
 #ifdef EXTRA_INIT
 EXTRA_INIT
 #endif //EXTRA_INIT
