@@ -18,10 +18,12 @@ using namespace uix;
 //#include "fonts/Telegrama.hpp"
 #include "fonts/OpenSans_Regular.hpp"
 static const open_font& text_font = OpenSans_Regular;
+
 #ifdef LCD_TOUCH
 void svg_touch();
 void svg_release();
 #endif // LCD_TOUCH
+
 // declare a custom control
 template <typename PixelType, typename PaletteType = gfx::palette<PixelType, PixelType>>
 class svg_box_touch : public svg_box<PixelType, PaletteType> {
@@ -106,6 +108,7 @@ screen_t main_screen(sizeof(lcd_buffer1), lcd_buffer1, lcd_buffer2);
 label_t test_label(main_screen);
 svg_box_t test_svg(main_screen);
 
+// button inputs
 #ifdef PIN_NUM_BUTTON_A
 // the buttons
 button_a_t button_a;
@@ -127,6 +130,8 @@ void button_b_on_click(bool pressed, void* state) {
     }
 }
 #endif // PIN_NUM_BUTTON_B
+
+// no inputs
 #if !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
 int cycle_state = 0;
 cycle_timer_t cycle_timer(1000, [](void* state) {
@@ -150,6 +155,17 @@ cycle_timer_t cycle_timer(1000, [](void* state) {
     }
 });
 #endif // !defined(PIN_NUM_BUTTON_A) && !defined(PIN_NUM_BUTTON_B) && !defined(LCD_TOUCH)
+
+// touch inputs
+#ifdef LCD_TOUCH
+void svg_touch() {
+    main_screen.background_color(color16_t::light_green);
+}
+void svg_release() {
+    main_screen.background_color(color16_t::white);
+}
+#endif // LCD_TOUCH
+
 #ifdef LCD_TOUCH
 #ifdef LCD_TOUCH_WIRE
 touch_t touch(LCD_TOUCH_WIRE);
@@ -166,15 +182,10 @@ LCD_TOUCH_IMPL
 #else
     in_out_locations_size = 0;
     return;
-#endif
-}
-void svg_touch() {
-    main_screen.background_color(color16_t::light_green);
-}
-void svg_release() {
-    main_screen.background_color(color16_t::white);
+#endif // LCD_TOUCH_IMPL
 }
 #endif // LCD_TOUCH
+
 #ifndef LCD_PIN_NUM_HSYNC
 // not used in RGB mode
 // tell UIX the DMA transfer is complete
@@ -185,6 +196,7 @@ static bool lcd_flush_ready(esp_lcd_panel_io_handle_t panel_io,
     return true;
 }
 #endif // LCD_PIN_NUM_HSYNC
+
 // tell the lcd panel api to transfer the display data
 static void uix_flush(point16 location, 
                     typename screen_t::bitmap_type& bmp, 
@@ -194,10 +206,12 @@ static void uix_flush(point16 location,
         x2 = location.x + bmp.dimensions().width-1, 
         y2 = location.y + bmp.dimensions().height-1;
     lcd_panel_draw_bitmap( x1, y1, x2, y2, bmp.begin());    
+
+    // if we're in RGB mode:
 #ifdef LCD_PIN_NUM_HSYNC
     // flushes are immediate in rgb mode
     main_screen.set_flush_complete();
-#endif
+#endif // LCD_PIN_NUM_HSYNC
 }
 
 // initialize the screen and controls
@@ -249,12 +263,16 @@ void setup() {
 #ifdef EXTRA_INIT
 EXTRA_INIT
 #endif //EXTRA_INIT
+
+    // RGB mode uses a slightly different call:
 #ifdef LCD_PIN_NUM_HSYNC
     lcd_panel_init();
 #else
     lcd_panel_init(sizeof(lcd_buffer1),lcd_flush_ready);
 #endif // LCD_PIN_NUM_HSYNC
+
     screen_init();
+
 #ifdef PIN_NUM_BUTTON_A
     button_a.initialize();
     button_a.on_pressed_changed(button_a_on_click);
