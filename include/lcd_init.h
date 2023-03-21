@@ -986,7 +986,7 @@ bool lcd_panel_init() {
     panel_config.psram_trans_align = 64;
     panel_config.num_fbs = 1;
     panel_config.clk_src = LCD_CLK_SRC_DEFAULT;
-    panel_config.disp_gpio_num = 1;
+    panel_config.disp_gpio_num = -1;
     panel_config.pclk_gpio_num = LCD_PIN_NUM_CLK;
     panel_config.vsync_gpio_num = LCD_PIN_NUM_VSYNC;
     panel_config.hsync_gpio_num = LCD_PIN_NUM_HSYNC;
@@ -1033,8 +1033,8 @@ bool lcd_panel_init() {
     ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(panel_handle, &cbs, &disp_drv));
     */
     ESP_ERROR_CHECK(esp_lcd_panel_reset(lcd_handle));
-    ESP_ERROR_CHECK(esp_lcd_new_panel_st7701());
     ESP_ERROR_CHECK(esp_lcd_panel_init(lcd_handle));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_st7701());
     
     
 
