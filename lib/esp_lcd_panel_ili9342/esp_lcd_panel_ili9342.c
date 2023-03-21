@@ -1,4 +1,3 @@
-#if __has_include(<sdkconfig.h>)
 /*
  * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
  *
@@ -174,7 +173,11 @@ esp_err_t esp_lcd_new_panel_ili9342(const esp_lcd_panel_io_handle_t io, const es
     ili9342->base.set_gap = panel_ili9342_set_gap;
     ili9342->base.mirror = panel_ili9342_mirror;
     ili9342->base.swap_xy = panel_ili9342_swap_xy;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    ili9342->base.disp_on_off = panel_ili9342_disp_on_off;
+#else
     ili9342->base.disp_off = panel_ili9342_disp_on_off;
+#endif
     *ret_panel = &(ili9342->base);
     ESP_LOGD(TAG, "new ili9342 panel @%p", ili9342);
 
@@ -380,4 +383,3 @@ static esp_err_t panel_ili9342_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
     vTaskDelay(pdMS_TO_TICKS(100));
     return ESP_OK;
 }
-#endif // __has_include(<sdkconfig.h>)

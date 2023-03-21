@@ -1,3 +1,4 @@
+#ifndef ESP_IDF
 #include <Arduino.h>
 #include <Wire.h>
 #include "config.h"
@@ -310,3 +311,4 @@ void loop() {
 #endif // !defined(PIN_NUM_BUTTON_A) ...
     main_screen.update();
 }
+#endif

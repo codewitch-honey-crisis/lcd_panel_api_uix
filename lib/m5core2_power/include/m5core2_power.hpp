@@ -24,9 +24,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #pragma once
-#include <Wire.h>
+#if __has_include(<Wire.h>)
 #include <Arduino.h>
-
+#include <Wire.h>
+#else 
+#ifdef ESP_PLATFORM
+#include <stdint.h>
+//#include <driver/i2c.h>
+//#include <soc/gpio_sig_map.h>
+#else
+  #error "This driver requires an M5Stack Core2"
+#endif
+#endif
 #define SLEEP_MSEC(us) (((uint64_t)us) * 1000L)
 #define SLEEP_SEC(us) (((uint64_t)us) * 1000000L)
 #define SLEEP_MIN(us) (((uint64_t)us) * 60L * 1000000L)

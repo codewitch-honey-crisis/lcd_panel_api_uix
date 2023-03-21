@@ -1,10 +1,12 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #ifdef TTGO_T1
+#if __has_include(<button.hpp>)
 #define PIN_NUM_BUTTON_A 35
 #define PIN_NUM_BUTTON_B 0
 #include <button.hpp> 
 using namespace arduino;
+#endif
 #endif  // TTGO_T1
 
 #ifdef ESP_WROVER_KIT
@@ -12,6 +14,8 @@ using namespace arduino;
 #endif // ESP_WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
+#include <esp_lcd_panel_ili9488.h>
+#if __has_include(<ft6236.hpp>)
 #define I2C_PIN_NUM_SDA 38
 #define I2C_PIN_NUM_SCL 39
 #define LCD_TOUCH ft6236<LCD_HRES, LCD_VRES>
@@ -34,12 +38,13 @@ using namespace arduino;
             *in_out_locations_size = 0;                                    \
         }                                                                  \
     }
-#include <esp_lcd_panel_ili9488.h>
 #include <ft6236.hpp>
 using namespace arduino;
+#endif
 #endif  // ESP_DISPLAY_S3
 
 #ifdef ESP_DISPLAY_4INCH
+#if __has_include(<gt911.hpp>)
 #define I2C_PIN_NUM_SDA 17
 #define I2C_PIN_NUM_SCL 18
 #define LCD_TOUCH_PIN_NUM_RST 38
@@ -62,37 +67,48 @@ using namespace arduino;
 #define EXTRA_INIT touch.initialize();
 #include <gt911.hpp> 
 using namespace arduino;
+#endif
 #endif // ESP_DISPLAY_4INCH
 
 #ifdef M5STACK_CORE2
+#if __has_include(<ft6336.hpp>)
 #define LCD_TOUCH ft6336<LCD_HRES, LCD_VRES, -1>
 #define LCD_TOUCH_WIRE Wire1
+#endif
 #define EXTRA_DECLS m5core2_power power;
 #define EXTRA_INIT power.initialize();
 #include <esp_lcd_panel_ili9342.h>
+#if __has_include(<m5core2_power.hpp>)
 #include <m5core2_power.hpp>
+#endif
+#if __has_include(<ft6336.hpp>)
 #include <ft6336.hpp> 
 using namespace arduino;
+#endif
 #endif // M5STACK_CORE2
 
 #ifdef M5STACK_FIRE
+#include <esp_lcd_panel_ili9342.h>
+#if __has_include(<button.hpp>)
 #define PIN_NUM_BUTTON_A 39
 #define PIN_NUM_BUTTON_B 38
 #define PIN_NUM_BUTTON_C 37
-#include <esp_lcd_panel_ili9342.h>
 #include <button.hpp>
 using namespace arduino;
+#endif
 #endif // M5STACK_FIRE
 
 #ifdef T_DISPLAY_S3
-#define PIN_NUM_BUTTON_A 0
-#define PIN_NUM_BUTTON_B 14
-#define PIN_NUM_POWER 15
 #define EXTRA_INIT                  \
     pinMode(PIN_NUM_POWER, OUTPUT); \
     digitalWrite(PIN_NUM_POWER, HIGH);
+#if __has_include(<button.hpp>)
+#define PIN_NUM_BUTTON_A 0
+#define PIN_NUM_BUTTON_B 14
+#define PIN_NUM_POWER 15
 #include <button.hpp> 
 using namespace arduino;
+#endif
 #endif // T_DISPLAY_S3
 
 #endif  // CONFIG_H

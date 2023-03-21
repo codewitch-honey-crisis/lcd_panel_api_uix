@@ -135,7 +135,7 @@
 #ifdef ESP_DISPLAY_4INCH
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
-#define LCD_PIN_NUM_CS 1
+//#define LCD_PIN_NUM_CS 1
 #define LCD_PIN_NUM_SCK 12
 #define LCD_PIN_NUM_SDA 11 
 #define LCD_PIN_NUM_DE 45
@@ -174,7 +174,7 @@
 #define LCD_HRES 480
 #define LCD_VRES 480
 #define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_BGR
-#define LCD_SWAP_COLOR_BYTES true
+#define LCD_SWAP_COLOR_BYTES false
 #ifdef CONFIG_SPIRAM_MODE_QUAD
     #define LCD_PIXEL_CLOCK_HZ (6 * 1000 * 1000)
 #else
@@ -210,7 +210,8 @@
 #define LCD_MIRROR_Y true
 #define LCD_INVERT_COLOR true
 #define LCD_SWAP_XY true
-#endif
+#endif // T_DISPLAY_S3
+
 #ifdef LCD_SWAP_XY
 #if LCD_SWAP_XY
 #define LCD_WIDTH LCD_VRES
