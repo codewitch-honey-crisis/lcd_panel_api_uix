@@ -263,11 +263,6 @@ void screen_init() {
     test_svg.bounds(srect16(spoint16(0, test_label.bounds().y2 + 1),
                             ssize16(60, 60))
                         .center_horizontal(main_screen.bounds()));
-    /*gfx_result res = svg_doc::read(&svg_stream, &doc);
-    if (gfx_result::success != res) {
-        printf("Error reading SVG: %d", (int)res);
-    }
-    test_svg.doc(&doc);*/
     main_screen.background_color(color16_t::white);
     main_screen.register_control(test_label);
     main_screen.register_control(test_svg);
@@ -277,6 +272,13 @@ void screen_init() {
 #endif  // LCD_TOUCH
 }
 void loop_task(void* state) {
+    // main thread doesn't have enough stack for this:
+    gfx_result res = svg_doc::read(&svg_stream, &doc);
+    if (gfx_result::success != res) {
+        printf("Error reading SVG: %d", (int)res);
+    } else {
+        test_svg.doc(&doc);
+    }
     while (1) {
 #ifdef PIN_NUM_BUTTON_A
         button_a.update();
