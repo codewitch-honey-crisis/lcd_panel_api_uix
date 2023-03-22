@@ -25,7 +25,7 @@ void m5core2_power::initialize() {
     Wire1.begin(21, 22);
     Wire1.setClock(400000);
 #else
-    i2c_config_t cfg;
+    /*i2c_config_t cfg;
     memset(&cfg, 0, sizeof(cfg));
     cfg.mode = i2c_mode_t::I2C_MODE_MASTER;
     cfg.sda_io_num = (int)21;
@@ -40,7 +40,7 @@ void m5core2_power::initialize() {
     res = i2c_driver_install(I2C_NUM_1, cfg.mode, 0, 0, 0);
     if (res != ESP_OK) {
         return;
-    }
+    }*/
 #endif
     // m5core2_power 30H
     Write1Byte(0x30, (Read8bit(0x30) & 0x04) | 0X02);
@@ -114,9 +114,11 @@ void m5core2_power::Write1Byte(uint8_t Addr, uint8_t Data) {
     Wire1.endTransmission();
 #else
     i2c_cmd_handle_t handle = i2c_cmd_link_create();
-    i2c_master_write_byte(handle, 0x34 << 1 | I2C_MASTER_WRITE, true);
+    i2c_master_start(handle);
+    i2c_master_write_byte(handle, 0x34 << 1 | I2C_MASTER_WRITE, 1);
     i2c_master_write_byte(handle, Addr, true);
     i2c_master_write_byte(handle, Data, true);
+    i2c_master_stop(handle);
     i2c_master_cmd_begin(I2C_NUM_1, handle, pdMS_TO_TICKS(1000));
     i2c_cmd_link_delete(handle);
 #endif

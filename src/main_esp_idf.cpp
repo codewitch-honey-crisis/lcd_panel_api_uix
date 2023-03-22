@@ -98,10 +98,6 @@ using button_b_t = int_button<PIN_NUM_BUTTON_B, 10, true>;
     !defined(LCD_TOUCH)
 using cycle_timer_t = uix::timer;
 #endif  // !defined(PIN_NUM_BUTTON_A) ...
-// declare touch if available
-#ifdef LCD_TOUCH
-using touch_t = LCD_TOUCH;
-#endif  // LCD_TOUCH
 // UIX allows you to use two buffers for maximum DMA efficiency
 // you don't have to, but performance is significantly better
 // declare 64KB across two buffers for transfer
@@ -193,11 +189,6 @@ void svg_release() {
 #endif  // LCD_TOUCH
 
 #ifdef LCD_TOUCH
-#ifdef LCD_TOUCH_WIRE
-touch_t touch(LCD_TOUCH_WIRE);
-#else
-touch_t touch;
-#endif  // LCD_TOUCH_WIRE
 static void uix_touch(point16* out_locations,
                       size_t* in_out_locations_size,
                       void* state) {

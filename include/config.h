@@ -19,7 +19,8 @@
 #define I2C_PIN_NUM_SDA 38
 #define I2C_PIN_NUM_SCL 39
 #if __has_include(<ft6236.hpp>)
-#define LCD_TOUCH ft6236<LCD_HRES, LCD_VRES>
+#define LCD_TOUCH
+#define EXTRA_DECLS ft6236<LCD_HRES, LCD_VRES> touch;
 #define LCD_ROTATION 1
 #define EXTRA_INIT      \
     touch.initialize(); \
@@ -48,7 +49,8 @@
 #define I2C_PIN_NUM_SDA 17
 #define I2C_PIN_NUM_SCL 18
 #define LCD_TOUCH_PIN_NUM_RST 38
-#define LCD_TOUCH gt911<LCD_TOUCH_PIN_NUM_RST>
+#define LCD_TOUCH
+#define EXTRA_DECLS gt911<LCD_TOUCH_PIN_NUM_RST> touch;
 #define LCD_TOUCH_IMPL                          \
     touch.update();                             \
     size_t touches = touch.locations_size();    \
@@ -67,24 +69,87 @@
 #define EXTRA_INIT touch.initialize();
 #include <gt911.hpp>
 
-#endif
+#endif // __has_include
 #endif  // ESP_DISPLAY_4INCH
 
 #ifdef M5STACK_CORE2
 #if __has_include(<ft6336.hpp>)
-#define LCD_TOUCH ft6336<LCD_HRES, LCD_VRES, -1>
-#define LCD_TOUCH_WIRE Wire1
-#endif
-#define EXTRA_DECLS m5core2_power power;
-#define EXTRA_INIT power.initialize();
+#define LCD_TOUCH
+#define LCD_TOUCH_IMPL \
+    vTaskDelay(pdMS_TO_TICKS(1));                                          \
+    if (touch.update()) {                                                  \
+        if (touch.xy(&out_locations[0].x, &out_locations[0].y)) {          \
+            if (*in_out_locations_size > 1) {                              \
+                *in_out_locations_size = 1;                                \
+                if (touch.xy2(&out_locations[1].x, &out_locations[1].y)) { \
+                    *in_out_locations_size = 2;                            \
+                }                                                          \
+            } else {                                                       \
+                *in_out_locations_size = 1;                                \
+            }                                                              \
+        } else {                                                           \
+            *in_out_locations_size = 0;                                    \
+        }                                                                  \
+    }
+#ifdef ESP_IDF
+#define LCD_TOUCH_I2C I2C_NUM_1
+#else 
+#define LCD_TOUCH_I2C Wire1
+#endif // ESP_IDF
+#define EXTRA_DECLS m5core2_power power; \
+                    ft6336<LCD_HRES, LCD_VRES> touch(LCD_TOUCH_I2C);
+#else
+#define EXTRA_DECLS m5core2_power power; 
+#endif // __has_include
+#ifdef ESP_IDF
+#if __has_include(<ft6336.hpp>)
+#define EXTRA_INIT                                         \
+        i2c_config_t i2c_int_conf;                                 \
+        i2c_int_conf.mode = I2C_MODE_MASTER;                       \
+        i2c_int_conf.sda_io_num = (gpio_num_t)21;                  \
+        i2c_int_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;           \
+        i2c_int_conf.scl_io_num = (gpio_num_t)22;                  \
+    i2c_int_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;               \
+        i2c_int_conf.master.clk_speed = 400 * 1000;                \
+        i2c_int_conf.clk_flags = 0;                                \
+        i2c_param_config(I2C_NUM_1, &i2c_int_conf);                \
+        i2c_driver_install(I2C_NUM_1, i2c_int_conf.mode, 0, 0, 0); \
+    power.initialize(); \
+    touch.initialize();
+#else
+#define EXTRA_INIT                                         \
+        i2c_config_t i2c_int_conf;                                 \
+        i2c_int_conf.mode = I2C_MODE_MASTER;                       \
+        i2c_int_conf.sda_io_num = (gpio_num_t)21;                  \
+        i2c_int_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;           \
+        i2c_int_conf.scl_io_num = (gpio_num_t)22;                  \
+    i2c_int_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;               \
+        i2c_int_conf.master.clk_speed = 400 * 1000;                \
+        i2c_int_conf.clk_flags = 0;                                \
+        i2c_param_config(I2C_NUM_1, &i2c_int_conf);                \
+        i2c_driver_install(I2C_NUM_1, i2c_int_conf.mode, 0, 0, 0); \
+    power.initialize();
+#endif // __has_include
+#else
+#if __has_include(<ft6336.hpp>)
+#define EXTRA_INIT \
+    Wire1.begin(21,22); \
+    power.initialize(); \
+    touch.initialize();
+#else
+    Wire1.begin(21,22); \
+    power.initialize();
+#endif // __has_include
+#endif // ESP_IDF
 #include <esp_lcd_panel_ili9342.h>
+#include <driver/i2c.h>
 #if __has_include(<m5core2_power.hpp>)
 #include <m5core2_power.hpp>
-#endif
+#endif // __has_include
 #if __has_include(<ft6336.hpp>)
 #include <ft6336.hpp>
 
-#endif
+#endif // __has_include
 #endif  // M5STACK_CORE2
 
 #ifdef M5STACK_FIRE
@@ -111,18 +176,16 @@
 #ifdef I2C_PIN_NUM_SDA
 #include <driver/i2c.h>
 #define I2C_INIT                                           \
-    {                                                      \
-        i2c_config_t conf;                                 \
-        conf.mode = I2C_MODE_MASTER;                       \
-        conf.sda_io_num = (gpio_num_t)I2C_PIN_NUM_SDA;     \
-        conf.sda_pullup_en = GPIO_PULLUP_ENABLE;           \
-        conf.scl_io_num = (gpio_num_t)I2C_PIN_NUM_SCL;     \
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;               \
-        conf.master.clk_speed = 100 * 1000;                \
-        conf.clk_flags = 0;                                \
-        i2c_param_config(I2C_NUM_0, &conf);                \
-        i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0); \
-    }
+        i2c_config_t i2c_conf;                                 \
+        i2c_conf.mode = I2C_MODE_MASTER;                       \
+        i2c_conf.sda_io_num = (gpio_num_t)I2C_PIN_NUM_SDA;     \
+        i2c_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;           \
+        i2c_conf.scl_io_num = (gpio_num_t)I2C_PIN_NUM_SCL;     \
+    i2c_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;               \
+        i2c_conf.master.clk_speed = 100 * 1000;                \
+        i2c_conf.clk_flags = 0;                                \
+        i2c_param_config(I2C_NUM_0, &i2c_conf);                \
+        i2c_driver_install(I2C_NUM_0, i2c_conf.mode, 0, 0, 0); 
 #endif  // I2C_PIN_NUM_SDA
 #else
 #ifdef I2C_PIN_NUM_SDA
