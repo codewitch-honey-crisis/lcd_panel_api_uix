@@ -1,23 +1,24 @@
 #ifndef CONFIG_H
 #define CONFIG_H
+
 #ifdef TTGO_T1
 #if __has_include(<button.hpp>)
 #define PIN_NUM_BUTTON_A 35
 #define PIN_NUM_BUTTON_B 0
-#include <button.hpp> 
-using namespace arduino;
+#include <button.hpp>
+
 #endif
 #endif  // TTGO_T1
 
 #ifdef ESP_WROVER_KIT
 #include <esp_lcd_panel_ili9341.h>
-#endif // ESP_WROVER_KIT
+#endif  // ESP_WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
 #include <esp_lcd_panel_ili9488.h>
-#if __has_include(<ft6236.hpp>)
 #define I2C_PIN_NUM_SDA 38
 #define I2C_PIN_NUM_SCL 39
+#if __has_include(<ft6236.hpp>)
 #define LCD_TOUCH ft6236<LCD_HRES, LCD_VRES>
 #define LCD_ROTATION 1
 #define EXTRA_INIT      \
@@ -39,7 +40,6 @@ using namespace arduino;
         }                                                                  \
     }
 #include <ft6236.hpp>
-using namespace arduino;
 #endif
 #endif  // ESP_DISPLAY_S3
 
@@ -65,10 +65,10 @@ using namespace arduino;
     }                                           \
     *in_out_locations_size = touches;
 #define EXTRA_INIT touch.initialize();
-#include <gt911.hpp> 
-using namespace arduino;
+#include <gt911.hpp>
+
 #endif
-#endif // ESP_DISPLAY_4INCH
+#endif  // ESP_DISPLAY_4INCH
 
 #ifdef M5STACK_CORE2
 #if __has_include(<ft6336.hpp>)
@@ -82,21 +82,18 @@ using namespace arduino;
 #include <m5core2_power.hpp>
 #endif
 #if __has_include(<ft6336.hpp>)
-#include <ft6336.hpp> 
-using namespace arduino;
+#include <ft6336.hpp>
+
 #endif
-#endif // M5STACK_CORE2
+#endif  // M5STACK_CORE2
 
 #ifdef M5STACK_FIRE
 #include <esp_lcd_panel_ili9342.h>
-#if __has_include(<button.hpp>)
 #define PIN_NUM_BUTTON_A 39
 #define PIN_NUM_BUTTON_B 38
 #define PIN_NUM_BUTTON_C 37
 #include <button.hpp>
-using namespace arduino;
-#endif
-#endif // M5STACK_FIRE
+#endif  // M5STACK_FIRE
 
 #ifdef T_DISPLAY_S3
 #define EXTRA_INIT                  \
@@ -106,9 +103,32 @@ using namespace arduino;
 #define PIN_NUM_BUTTON_A 0
 #define PIN_NUM_BUTTON_B 14
 #define PIN_NUM_POWER 15
-#include <button.hpp> 
-using namespace arduino;
-#endif
-#endif // T_DISPLAY_S3
+#include <button.hpp>
 
+#endif  // __has_include(<button.hpp>)
+#endif  // T_DISPLAY_S3
+#ifdef ESP_IDF
+#ifdef I2C_PIN_NUM_SDA
+#include <driver/i2c.h>
+#define I2C_INIT                                           \
+    {                                                      \
+        i2c_config_t conf;                                 \
+        conf.mode = I2C_MODE_MASTER;                       \
+        conf.sda_io_num = (gpio_num_t)I2C_PIN_NUM_SDA;     \
+        conf.sda_pullup_en = GPIO_PULLUP_ENABLE;           \
+        conf.scl_io_num = (gpio_num_t)I2C_PIN_NUM_SCL;     \
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;               \
+        conf.master.clk_speed = 100 * 1000;                \
+        conf.clk_flags = 0;                                \
+        i2c_param_config(I2C_NUM_0, &conf);                \
+        i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0); \
+    }
+#endif  // I2C_PIN_NUM_SDA
+#else
+#ifdef I2C_PIN_NUM_SDA
+#include <Wire.h>
+#define I2C_INIT \
+    Wire.begin(I2C_PIN_NUM_SDA, I2C_PIN_NUM_SCL);
+#endif  // I2C_PIN_NUM_SDA
+#endif  // ESP_IDF
 #endif  // CONFIG_H

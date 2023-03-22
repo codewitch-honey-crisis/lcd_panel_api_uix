@@ -1,4 +1,8 @@
 #ifdef ESP_IDF
+namespace arduino {}
+namespace esp_idf {}
+using namespace arduino;
+using namespace esp_idf;
 extern "C" {
 void app_main();
 }
@@ -197,7 +201,7 @@ touch_t touch;
 static void uix_touch(point16* out_locations,
                       size_t* in_out_locations_size,
                       void* state) {
-    if (in_out_locations_size <= 0) {
+    if (*in_out_locations_size <= 0) {
         *in_out_locations_size = 0;
         return;
     }
@@ -296,6 +300,9 @@ void loop_task(void* state) {
     }    
 }
 void app_main() {
+#ifdef I2C_INIT
+    I2C_INIT
+#endif
 #ifdef EXTRA_INIT
     EXTRA_INIT
 #endif  // EXTRA_INIT

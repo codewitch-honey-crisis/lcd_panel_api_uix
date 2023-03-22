@@ -1,4 +1,8 @@
 #ifndef ESP_IDF
+namespace arduino {}
+namespace esp_idf {}
+using namespace arduino;
+using namespace esp_idf;
 #include <Arduino.h>
 #include <Wire.h>
 #include "config.h"
@@ -273,9 +277,9 @@ void screen_init() {
 // set up the hardware
 void setup() {
     Serial.begin(115200);
-#ifdef I2C_PIN_NUM_SDA
-    Wire.begin(I2C_PIN_NUM_SDA,I2C_PIN_NUM_SCL);
-#endif // I2C_PIN_NUM_SDA
+#ifdef I2C_INIT
+I2C_INIT
+#endif
 #ifdef EXTRA_INIT
 EXTRA_INIT
 #endif //EXTRA_INIT
