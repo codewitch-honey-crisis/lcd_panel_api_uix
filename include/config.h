@@ -104,40 +104,18 @@
 #ifdef ESP_IDF
 #if __has_include(<ft6336.hpp>)
 #define EXTRA_INIT                                         \
-        i2c_config_t i2c_int_conf;                                 \
-        i2c_int_conf.mode = I2C_MODE_MASTER;                       \
-        i2c_int_conf.sda_io_num = (gpio_num_t)21;                  \
-        i2c_int_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;           \
-        i2c_int_conf.scl_io_num = (gpio_num_t)22;                  \
-    i2c_int_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;               \
-        i2c_int_conf.master.clk_speed = 400 * 1000;                \
-        i2c_int_conf.clk_flags = 0;                                \
-        i2c_param_config(I2C_NUM_1, &i2c_int_conf);                \
-        i2c_driver_install(I2C_NUM_1, i2c_int_conf.mode, 0, 0, 0); \
     power.initialize(); \
     touch.initialize();
 #else
 #define EXTRA_INIT                                         \
-        i2c_config_t i2c_int_conf;                                 \
-        i2c_int_conf.mode = I2C_MODE_MASTER;                       \
-        i2c_int_conf.sda_io_num = (gpio_num_t)21;                  \
-        i2c_int_conf.sda_pullup_en = GPIO_PULLUP_ENABLE;           \
-        i2c_int_conf.scl_io_num = (gpio_num_t)22;                  \
-    i2c_int_conf.scl_pullup_en = GPIO_PULLUP_ENABLE;               \
-        i2c_int_conf.master.clk_speed = 400 * 1000;                \
-        i2c_int_conf.clk_flags = 0;                                \
-        i2c_param_config(I2C_NUM_1, &i2c_int_conf);                \
-        i2c_driver_install(I2C_NUM_1, i2c_int_conf.mode, 0, 0, 0); \
     power.initialize();
 #endif // __has_include
 #else
 #if __has_include(<ft6336.hpp>)
 #define EXTRA_INIT \
-    Wire1.begin(21,22); \
     power.initialize(); \
     touch.initialize();
 #else
-    Wire1.begin(21,22); \
     power.initialize();
 #endif // __has_include
 #endif // ESP_IDF
