@@ -139,13 +139,19 @@
 #endif  // M5STACK_FIRE
 
 #ifdef T_DISPLAY_S3
+#define PIN_NUM_POWER 15
+#ifdef ESP_IDF
+#define EXTRA_INIT                  \
+    gpio_set_direction((gpio_num_t)PIN_NUM_POWER, GPIO_MODE_OUTPUT); \
+    gpio_set_level((gpio_num_t)PIN_NUM_POWER,1);
+#else
 #define EXTRA_INIT                  \
     pinMode(PIN_NUM_POWER, OUTPUT); \
     digitalWrite(PIN_NUM_POWER, HIGH);
+#endif
 #if __has_include(<button.hpp>)
 #define PIN_NUM_BUTTON_A 0
 #define PIN_NUM_BUTTON_B 14
-#define PIN_NUM_POWER 15
 #include <button.hpp>
 
 #endif  // __has_include(<button.hpp>)
