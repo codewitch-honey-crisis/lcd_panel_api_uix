@@ -1161,15 +1161,15 @@ bool lcd_panel_init(size_t max_transfer_size, esp_lcd_panel_io_color_trans_done_
 #endif
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 if(((int)LCD_COLOR_SPACE) == 0) {
-    panel_config.color_space = LCD_RGB_ENDIAN_RGB;
+    panel_config.rgb_endian = LCD_RGB_ENDIAN_RGB;
 } else {
-    panel_config.color_space = LCD_RGB_ENDIAN_BGR;
+    panel_config.rgb_endian = LCD_RGB_ENDIAN_BGR;
 }
 #else
     panel_config.color_space = LCD_COLOR_SPACE;
 #endif
     panel_config.bits_per_pixel = 16;
-
+    
     // Initialize the LCD configuration
     LCD_PANEL(io_handle, &panel_config, &lcd_handle);
 
@@ -1191,7 +1191,7 @@ if(((int)LCD_COLOR_SPACE) == 0) {
     esp_lcd_panel_invert_color(lcd_handle, LCD_INVERT_COLOR);
     // Turn on the screen
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    esp_lcd_panel_disp_on_off(lcd_handle, false);
+    esp_lcd_panel_disp_on_off(lcd_handle, true);
 #else
     esp_lcd_panel_disp_off(lcd_handle, false);
 #endif
