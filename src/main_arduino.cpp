@@ -16,7 +16,7 @@ using namespace uix;
 // SVG converted to header using
 // https://honeythecodewitch.com/gfx/converter
 #include "bee_icon.hpp"
-static const_buffer_stream& svg_stream = bee_icon;
+static const svg_doc& svg = bee_icon;
 // downloaded from fontsquirrel.com and header generated with
 // https://honeythecodewitch.com/gfx/generator
 //#include "fonts/Rubik_Black.hpp"
@@ -231,7 +231,7 @@ static void uix_flush(point16 location,
 
 // initialize the screen and controls
 void screen_init() {
-    test_label.bounds(srect16(spoint16(0, 10), ssize16(200, 60))
+    test_label.bounds(srect16(spoint16(0, 5), ssize16(200, 60))
                 .center_horizontal(main_screen.bounds()));
     test_label.text_color(color32_t::blue);
     test_label.text_open_font(&text_font);
@@ -253,11 +253,11 @@ void screen_init() {
 #endif // LCD_TOUCH
     test_svg.bounds(srect16(spoint16(0, test_label.bounds().y2+1), 
                     ssize16(60,60)).center_horizontal(main_screen.bounds()));
-    gfx_result res = svg_doc::read(&svg_stream, &doc);
+    /*gfx_result res = svg_doc::read(&svg_stream, &doc);
     if (gfx_result::success != res) {
         Serial.printf("Error reading SVG: %d", (int)res);
-    }
-    test_svg.doc(&doc);
+    }*/
+    test_svg.doc(&svg);
     main_screen.background_color(color16_t::white);
     main_screen.register_control(test_label);
     main_screen.register_control(test_svg);

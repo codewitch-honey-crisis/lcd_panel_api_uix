@@ -178,4 +178,21 @@
     Wire.begin(I2C_PIN_NUM_SDA, I2C_PIN_NUM_SCL);
 #endif  // I2C_PIN_NUM_SDA
 #endif  // ESP_IDF
+#ifdef S3_T_QT_PRO
+#define PIN_NUM_POWER 4
+#ifdef ESP_IDF
+#define EXTRA_INIT                  \
+    gpio_set_direction((gpio_num_t)PIN_NUM_POWER, GPIO_MODE_OUTPUT); \
+    gpio_set_level((gpio_num_t)PIN_NUM_POWER,1);
+#else
+#define EXTRA_INIT                  \
+    pinMode(PIN_NUM_POWER, OUTPUT); \
+    digitalWrite(PIN_NUM_POWER, HIGH);
+#endif
+#if __has_include(<button.hpp>)
+#define PIN_NUM_BUTTON_A            0
+#define PIN_NUM_BUTTON_B            47
+#include <button.hpp>
+#endif // __has_include
+#endif // S3_T_QT_PRO
 #endif  // CONFIG_H

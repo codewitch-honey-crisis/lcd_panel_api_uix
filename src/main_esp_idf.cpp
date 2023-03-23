@@ -1,4 +1,5 @@
 #ifdef ESP_IDF
+#include <stdio.h>
 namespace arduino {}
 namespace esp_idf {}
 using namespace arduino;
@@ -22,7 +23,7 @@ using namespace uix;
 // SVG converted to header using
 // https://honeythecodewitch.com/gfx/converter
 #include "bee_icon.hpp"
-static const_buffer_stream& svg_stream = bee_icon;
+static const svg_doc& svg = bee_icon;
 // downloaded from fontsquirrel.com and header generated with
 // https://honeythecodewitch.com/gfx/generator
 // #include "fonts/Rubik_Black.hpp"
@@ -148,6 +149,7 @@ void button_b_on_click(bool pressed, void* state) {
     } else {
         main_screen.background_color(color16_t::white);
     }
+    printf("Button B\n");
 }
 #endif  // PIN_NUM_BUTTON_B
 
@@ -235,7 +237,7 @@ static void uix_flush(point16 location,
 
 // initialize the screen and controls
 void screen_init() {
-    test_label.bounds(srect16(spoint16(0, 10), ssize16(200, 60))
+    test_label.bounds(srect16(spoint16(0, 5), ssize16(200, 60))
                           .center_horizontal(main_screen.bounds()));
     test_label.text_color(color32_t::blue);
     test_label.text_open_font(&text_font);
@@ -255,6 +257,7 @@ void screen_init() {
     test_label.pressed_background_color(bg);
     test_label.pressed_border_color(bg);
 #endif  // LCD_TOUCH
+    test_svg.doc(&svg);
     test_svg.bounds(srect16(spoint16(0, test_label.bounds().y2 + 1),
                             ssize16(60, 60))
                         .center_horizontal(main_screen.bounds()));
@@ -268,12 +271,6 @@ void screen_init() {
 }
 void loop_task(void* state) {
     // main thread doesn't have enough stack for this:
-    gfx_result res = svg_doc::read(&svg_stream, &doc);
-    if (gfx_result::success != res) {
-        printf("Error reading SVG: %d", (int)res);
-    } else {
-        test_svg.doc(&doc);
-    }
     while (1) {
 #ifdef PIN_NUM_BUTTON_A
         button_a.update();
