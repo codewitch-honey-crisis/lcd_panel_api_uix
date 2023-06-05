@@ -114,11 +114,6 @@ extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
 #endif  // LCD_PIN_NUM_HSYNC
 
 #ifdef LCD_PIN_NUM_HSYNC
-#if __has_include(<esp32s3/rom/cache.h>)
-#include <esp32s3/rom/cache.h>
-extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
-#endif
-
 typedef struct lcd_pin_backup {
     uint32_t _io_mux_gpio_reg;
     uint32_t _gpio_func_out_reg;
@@ -800,10 +795,6 @@ bool lcd_panel_init() {
     size_t fb_len = (LCD_HRES * pixel_bytes) * LCD_VRES;
     auto data = (uint8_t*)lcd_heap_alloc_psram(fb_len);
     lcd_frame_buffer = data;
-    if(lcd_frame_buffer==nullptr) {
-        ESP_LOGE("lcd_panel_init","out of memory (PSRAM)\n");
-        return false;
-    }
     static constexpr size_t MAX_DMA_LEN = (4096 - 64);
     size_t dmadesc_size = (fb_len - 1) / MAX_DMA_LEN + 1;
     auto dmadesc = (dma_descriptor_t*)heap_caps_malloc(sizeof(dma_descriptor_t) * dmadesc_size, MALLOC_CAP_DMA);
@@ -954,14 +945,12 @@ bool lcd_panel_init() {
             gpio_set_direction((gpio_num_t)LCD_PIN_NUM_CS, GPIO_MODE_OUTPUT);
 #endif
 #endif
-
 #ifdef LCD_PANEL
             return ESP_OK == LCD_PANEL();
 #else
-            return ESP_OK;
-#endif
+            return true;
+#endif // LCD_PANEL
         }
-        printf("out of memory\n");
         lcd_heap_free(lineArray);
     }
 
@@ -969,53 +958,9 @@ bool lcd_panel_init() {
 }
 #endif  // LCD_PIN_NUM_HSYNC
 #else
-#include "esp_private/gdma.h"
-#include "esp_pm.h"
-#include "hal/dma_types.h"
-
-#include "hal/lcd_hal.h"
-#include "hal/lcd_ll.h"
-// extract from esp-idf esp_lcd_rgb_panel.c
-struct esp_rgb_panel_t
-{
-  esp_lcd_panel_t base;                                        // Base class of generic lcd panel
-  int panel_id;                                                // LCD panel ID
-  lcd_hal_context_t hal;                                       // Hal layer object
-  size_t data_width;                                           // Number of data lines (e.g. for RGB565, the data width is 16)
-  size_t sram_trans_align;                                     // Alignment for framebuffer that allocated in SRAM
-  size_t psram_trans_align;                                    // Alignment for framebuffer that allocated in PSRAM
-  int disp_gpio_num;                                           // Display control GPIO, which is used to perform action like "disp_off"
-  intr_handle_t intr;                                          // LCD peripheral interrupt handle
-  esp_pm_lock_handle_t pm_lock;                                // Power management lock
-  size_t num_dma_nodes;                                        // Number of DMA descriptors that used to carry the frame buffer
-  uint8_t *fb;                                                 // Frame buffer
-  size_t fb_size;                                              // Size of frame buffer
-  int data_gpio_nums[SOC_LCD_RGB_DATA_WIDTH];                  // GPIOs used for data lines, we keep these GPIOs for action like "invert_color"
-  size_t resolution_hz;                                        // Peripheral clock resolution
-  esp_lcd_rgb_timing_t timings;                                // RGB timing parameters (e.g. pclk, sync pulse, porch width)
-  gdma_channel_handle_t dma_chan;                              // DMA channel handle
-  esp_lcd_rgb_panel_frame_trans_done_cb_t on_frame_trans_done; // Callback, invoked after frame trans done
-  void *user_ctx;                                              // Reserved user's data of callback functions
-  int x_gap;                                                   // Extra gap in x coordinate, it's used when calculate the flush window
-  int y_gap;                                                   // Extra gap in y coordinate, it's used when calculate the flush window
-  struct
-  {
-    unsigned int disp_en_level : 1; // The level which can turn on the screen by `disp_gpio_num`
-    unsigned int stream_mode : 1;   // If set, the LCD transfers data continuously, otherwise, it stops refreshing the LCD when transaction done
-    unsigned int fb_in_psram : 1;   // Whether the frame buffer is in PSRAM
-  } flags;
-  dma_descriptor_t dma_nodes[]; // DMA descriptor pool of size `num_dma_nodes`
-};
-uint8_t* lcd_frame_buffer;
-size_t lcd_frame_buffer_size;
 esp_err_t lcd_panel_draw_bitmap(int x1, int y1, int x2, int y2, void* bitmap) {
-    esp_err_t result=esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2 + 1, y2 + 1, bitmap);
-    if(ESP_OK==result) {
-        Cache_WriteBack_Addr((uint32_t)lcd_frame_buffer,lcd_frame_buffer_size);
-    }
-    return result;
+    return esp_lcd_panel_draw_bitmap(lcd_handle, x1, y1, x2 + 1, y2 + 1, bitmap);
 }
-
 bool lcd_panel_init() {
 #ifdef LCD_PIN_NUM_BCKL
 #if LCD_PIN_NUM_BCKL >= 0
@@ -1041,7 +986,6 @@ bool lcd_panel_init() {
     gpio_set_direction((gpio_num_t)LCD_PIN_NUM_SDA, GPIO_MODE_OUTPUT);
 #endif
 #endif
-    LCD_PANEL();
     esp_lcd_rgb_panel_config_t panel_config;
     memset(&panel_config, 0, sizeof(panel_config));
 
@@ -1072,8 +1016,13 @@ bool lcd_panel_init() {
     panel_config.data_gpio_nums[15] = LCD_PIN_NUM_D15;
 
     panel_config.timings.pclk_hz = LCD_PIXEL_CLOCK_HZ;
+#ifdef LCD_SWAP_HRES_VRES_TIMING
+    panel_config.timings.h_res = LCD_VRES;
+    panel_config.timings.v_res = LCD_HRES;
+#else 
     panel_config.timings.h_res = LCD_HRES;
     panel_config.timings.v_res = LCD_VRES;
+#endif // LCD_SWAP_HRES_VRES_TIMING
     // The following parameters should refer to LCD spec
     panel_config.timings.hsync_back_porch = LCD_HSYNC_BACK_PORCH;
     panel_config.timings.hsync_front_porch = LCD_HSYNC_FRONT_PORCH;
@@ -1089,7 +1038,6 @@ bool lcd_panel_init() {
     panel_config.timings.flags.pclk_idle_high = LCD_CLK_IDLE_HIGH;
     panel_config.flags.fb_in_psram = true;  // allocate frame buffer in PSRAM
     ESP_ERROR_CHECK(esp_lcd_new_rgb_panel(&panel_config, &lcd_handle));
-    
     /*
     esp_lcd_rgb_panel_event_callbacks_t cbs = {
         .on_vsync = LCD_on_vsync_event,
@@ -1098,12 +1046,9 @@ bool lcd_panel_init() {
     */
     ESP_ERROR_CHECK(esp_lcd_panel_reset(lcd_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(lcd_handle));
-    esp_rgb_panel_t * rgb_panel = __containerof(lcd_handle, esp_rgb_panel_t, base);
-
-    lcd_frame_buffer = (uint8_t*)rgb_panel->fb;
-    lcd_frame_buffer_size = rgb_panel->fb_size;
+#ifdef LCD_PANEL
     ESP_ERROR_CHECK(LCD_PANEL());
-    
+#endif
     esp_lcd_panel_disp_on_off(lcd_handle, true);
 
 #if LCD_PIN_NUM_BK_LIGHT >= 0
@@ -1237,10 +1182,10 @@ if(((int)LCD_COLOR_SPACE) == 0) {
     panel_config.color_space = LCD_COLOR_SPACE;
 #endif
     panel_config.bits_per_pixel = 16;
-    
+#ifdef LCD_PANEL
     // Initialize the LCD configuration
     LCD_PANEL(io_handle, &panel_config, &lcd_handle);
-
+#endif // LCD_PANEL
 #ifdef LCD_PIN_NUM_BCKL
     // Turn off backlight to avoid unpredictable display on
     // the LCD screen while initializing

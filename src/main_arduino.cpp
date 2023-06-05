@@ -1,4 +1,5 @@
 #ifndef ESP_IDF
+#define MONITOR USBSerial
 namespace arduino {}
 namespace esp_idf {}
 using namespace arduino;
@@ -266,19 +267,27 @@ void screen_init() {
     main_screen.on_touch_callback(uix_touch);
 #endif // LCD_TOUCH
 }
+
 // set up the hardware
 void setup() {
-    Serial.begin(115200);
+    
+Serial.begin(115200);
+   Serial.println("Booting");
+    
 #ifdef I2C_INIT
 I2C_INIT
 #endif
+
 #ifdef EXTRA_INIT
 EXTRA_INIT
 #endif //EXTRA_INIT
+    
+
 
     // RGB mode uses a slightly different call:
 #ifdef LCD_PIN_NUM_HSYNC
     lcd_panel_init();
+    Serial.println("lcd panel initialized");
 #else
     lcd_panel_init(sizeof(lcd_buffer1),lcd_flush_ready);
 #endif // LCD_PIN_NUM_HSYNC
@@ -292,8 +301,10 @@ EXTRA_INIT
     button_b.on_pressed_changed(button_b_on_click);
 #endif // PIN_NUM_BUTTON_B
 }
+
 // keep our stuff up to date and responsive
 void loop() {
+
 #ifdef PIN_NUM_BUTTON_A
     button_a.update();
 #endif // PIN_NUM_BUTTON_A
