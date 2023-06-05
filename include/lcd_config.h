@@ -2,6 +2,7 @@
 #define LCD_CONFIG_H
 
 #ifdef TTGO_T1
+#define MONITOR Serial
 #define LCD_SPI_HOST    SPI3_HOST
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
@@ -25,6 +26,7 @@
 #endif // TTGO_T1
 
 #ifdef ESP_WROVER_KIT
+#define MONITOR Serial
 #define LCD_BCKL_ON_LEVEL 0
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
 #define LCD_SPI_HOST    HSPI_HOST
@@ -49,6 +51,7 @@
 #endif // ESP_WROVER_KIT
 
 #ifdef ESP_DISPLAY_S3
+#define MONITOR Serial
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
 #define LCD_PIN_NUM_CS 37
@@ -87,6 +90,7 @@
 #endif // ESP_DISPLAY_S3
 
 #ifdef M5STACK_CORE2
+#define MONITOR Serial
 #define LCD_SPI_HOST    SPI3_HOST
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
@@ -108,6 +112,7 @@
 #endif // M5STACK_CORE2
 
 #ifdef M5STACK_FIRE
+#define MONITOR Serial
 #define LCD_SPI_HOST    SPI3_HOST
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
@@ -131,6 +136,7 @@
 #endif // M5STACK_FIRE
 
 #ifdef ESP_DISPLAY_4INCH
+#define MONITOR Serial
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
 #define LCD_PIN_NUM_CS 1
@@ -181,6 +187,7 @@
 #endif // ESP_DISPLAY_4INCH
 
 #ifdef ESP_DISPLAY_4_3INCH
+#define MONITOR Serial
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
 //#define LCD_PIN_NUM_CS 1
@@ -232,6 +239,7 @@
 #endif // ESP_DISPLAY_4INCH
 
 #ifdef T_DISPLAY_S3
+#define MONITOR USBSerial
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
 #define LCD_PIN_NUM_CS 6
@@ -262,6 +270,7 @@
 #endif // T_DISPLAY_S3
 
 #ifdef S3_T_QT_PRO
+#define MONITOR Serial
 #define LCD_SPI_HOST    SPI3_HOST
 #define LCD_BCKL_ON_LEVEL 0
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
@@ -276,8 +285,8 @@
 #define LCD_VRES 128
 #define LCD_COLOR_SPACE ESP_LCD_COLOR_SPACE_BGR
 #define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
-#define LCD_GAP_X 0
-#define LCD_GAP_Y 0
+#define LCD_GAP_X 1
+#define LCD_GAP_Y 1
 #define LCD_MIRROR_X true
 #define LCD_MIRROR_Y true
 #define LCD_INVERT_COLOR true
@@ -285,6 +294,7 @@
 #endif // S3_T_QT_PRO
 
 #ifdef T_RGB
+#define MONITOR USBSerial
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
 
@@ -333,6 +343,7 @@
 #endif // T_RGB
 
 #ifdef SUNTON_7INCH
+#define MONITOR Serial
 #define LCD_BCKL_ON_LEVEL 1
 #define LCD_BCKL_OFF_LEVEL !LCD_BCKL_ON_LEVEL
 #define LCD_PIN_NUM_DE 41

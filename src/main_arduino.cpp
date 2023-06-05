@@ -1,5 +1,4 @@
 #ifndef ESP_IDF
-#define MONITOR USBSerial
 namespace arduino {}
 namespace esp_idf {}
 using namespace arduino;
@@ -256,7 +255,7 @@ void screen_init() {
                     ssize16(60,60)).center_horizontal(main_screen.bounds()));
     /*gfx_result res = svg_doc::read(&svg_stream, &doc);
     if (gfx_result::success != res) {
-        Serial.printf("Error reading SVG: %d", (int)res);
+        MONITOR.printf("Error reading SVG: %d", (int)res);
     }*/
     test_svg.doc(&svg);
     main_screen.background_color(color16_t::white);
@@ -271,8 +270,8 @@ void screen_init() {
 // set up the hardware
 void setup() {
     
-Serial.begin(115200);
-   Serial.println("Booting");
+MONITOR.begin(115200);
+   MONITOR.println("Booting");
     
 #ifdef I2C_INIT
 I2C_INIT
@@ -287,7 +286,7 @@ EXTRA_INIT
     // RGB mode uses a slightly different call:
 #ifdef LCD_PIN_NUM_HSYNC
     lcd_panel_init();
-    Serial.println("lcd panel initialized");
+    MONITOR.println("lcd panel initialized");
 #else
     lcd_panel_init(sizeof(lcd_buffer1),lcd_flush_ready);
 #endif // LCD_PIN_NUM_HSYNC
