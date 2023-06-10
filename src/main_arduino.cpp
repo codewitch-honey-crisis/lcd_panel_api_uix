@@ -253,10 +253,6 @@ void screen_init() {
 #endif // LCD_TOUCH
     test_svg.bounds(srect16(spoint16(0, test_label.bounds().y2+1), 
                     ssize16(60,60)).center_horizontal(main_screen.bounds()));
-    /*gfx_result res = svg_doc::read(&svg_stream, &doc);
-    if (gfx_result::success != res) {
-        MONITOR.printf("Error reading SVG: %d", (int)res);
-    }*/
     test_svg.doc(&svg);
     main_screen.background_color(color16_t::white);
     main_screen.register_control(test_label);
@@ -269,8 +265,8 @@ void screen_init() {
 
 // set up the hardware
 void setup() {
-    
-MONITOR.begin(115200);
+
+   MONITOR.begin(115200);
    MONITOR.println("Booting");
     
 #ifdef I2C_INIT
